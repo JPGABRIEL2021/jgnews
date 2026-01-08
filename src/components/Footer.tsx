@@ -39,18 +39,23 @@ const Footer = () => {
             <h3 className="font-bold text-background mb-4">Institucional</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="#" className="text-sm text-background/60 hover:text-primary transition-colors">
+                <Link to="/sobre" className="text-sm text-background/60 hover:text-primary transition-colors">
                   Sobre nós
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-sm text-background/60 hover:text-primary transition-colors">
+                <Link to="/contato" className="text-sm text-background/60 hover:text-primary transition-colors">
                   Fale conosco
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-sm text-background/60 hover:text-primary transition-colors">
+                <Link to="/privacidade" className="text-sm text-background/60 hover:text-primary transition-colors">
                   Política de privacidade
+                </Link>
+              </li>
+              <li>
+                <Link to="/termos" className="text-sm text-background/60 hover:text-primary transition-colors">
+                  Termos de uso
                 </Link>
               </li>
             </ul>
