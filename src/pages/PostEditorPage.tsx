@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Eye } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -19,6 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { useCreatePost, useUpdatePost, usePostById } from "@/hooks/usePosts";
 import { categories, PostInsert } from "@/lib/posts";
 import { toast } from "sonner";
@@ -44,6 +52,8 @@ const PostEditorPage = () => {
     is_breaking: false,
     scheduled_at: null,
   });
+
+  const [showPreview, setShowPreview] = useState(false);
 
   // Load existing post data when editing
   useEffect(() => {
@@ -272,6 +282,15 @@ const PostEditorPage = () => {
 
           {/* Submit */}
           <div className="flex gap-4 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowPreview(true)}
+              className="gap-2"
+            >
+              <Eye size={18} />
+              Visualizar
+            </Button>
             <Button type="submit" disabled={isSubmitting} className="gap-2">
               {isSubmitting ? (
                 <Loader2 size={18} className="animate-spin" />
@@ -289,6 +308,108 @@ const PostEditorPage = () => {
             </Button>
           </div>
         </form>
+
+        {/* Preview Dialog */}
+        <Dialog open={showPreview} onOpenChange={setShowPreview}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Eye size={20} />
+                Pré-visualização da Notícia
+              </DialogTitle>
+            </DialogHeader>
+
+            <ScrollArea className="flex-1 max-h-[70vh] pr-4">
+              <article className="space-y-6">
+                {/* Cover Image */}
+                {formData.cover_image ? (
+                  <div className="relative aspect-video rounded-lg overflow-hidden">
+                    <img
+                      src={formData.cover_image}
+                      alt={formData.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {formData.is_breaking && (
+                      <div className="absolute top-4 left-4">
+                        <Badge variant="destructive" className="animate-pulse font-bold">
+                          URGENTE
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                    <span className="text-muted-foreground">Sem imagem de capa</span>
+                  </div>
+                )}
+
+                {/* Meta */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Badge variant="secondary">{formData.category}</Badge>
+                  {formData.is_featured && (
+                    <Badge variant="outline" className="border-primary text-primary">
+                      Destaque
+                    </Badge>
+                  )}
+                  {formData.author && (
+                    <span className="text-sm text-muted-foreground">
+                      Por {formData.author}
+                    </span>
+                  )}
+                  {formData.scheduled_at && (
+                    <span className="text-sm text-muted-foreground">
+                      Agendado para: {new Date(formData.scheduled_at).toLocaleString("pt-BR")}
+                    </span>
+                  )}
+                </div>
+
+                {/* Title */}
+                <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight">
+                  {formData.title || "Título da notícia"}
+                </h1>
+
+                {/* Excerpt */}
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  {formData.excerpt || "Resumo da notícia..."}
+                </p>
+
+                {/* Content */}
+                <div 
+                  className="prose prose-lg max-w-none dark:prose-invert"
+                  dangerouslySetInnerHTML={{ 
+                    __html: formData.content || "<p>Conteúdo da notícia...</p>" 
+                  }}
+                />
+              </article>
+            </ScrollArea>
+
+            <div className="flex justify-between items-center pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                URL: /post/{formData.slug || "url-da-noticia"}
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setShowPreview(false)}>
+                  Continuar Editando
+                </Button>
+                <Button 
+                  onClick={(e) => {
+                    setShowPreview(false);
+                    handleSubmit(e as unknown as React.FormEvent);
+                  }}
+                  disabled={isSubmitting}
+                  className="gap-2"
+                >
+                  {isSubmitting ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Save size={18} />
+                  )}
+                  {formData.scheduled_at ? "Agendar" : isEditing ? "Salvar" : "Publicar"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
 
       <Footer />
