@@ -6,12 +6,21 @@ import { toast } from "sonner";
 // Types for the collection system
 export interface CollectionConfig {
   id: string;
-  type: "site" | "topic";
+  type: "site" | "topic" | "time_filter";
   value: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
+
+export type TimeFilterValue = "1h" | "6h" | "12h" | "24h";
+
+export const TIME_FILTER_OPTIONS: { value: TimeFilterValue; label: string }[] = [
+  { value: "1h", label: "Última 1 hora" },
+  { value: "6h", label: "Últimas 6 horas" },
+  { value: "12h", label: "Últimas 12 horas" },
+  { value: "24h", label: "Últimas 24 horas" },
+];
 
 export interface CollectionLog {
   id: string;
@@ -69,7 +78,7 @@ export function useAddConfig() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ type, value }: { type: "site" | "topic"; value: string }) => {
+    mutationFn: async ({ type, value }: { type: "site" | "topic" | "time_filter"; value: string }) => {
       const { data, error } = await supabase
         .from("news_collection_config")
         .insert({ type, value })
@@ -85,6 +94,44 @@ export function useAddConfig() {
     },
     onError: (error: Error) => {
       toast.error(`Erro ao adicionar: ${error.message}`);
+    },
+  });
+}
+
+// Update time filter config
+export function useUpdateTimeFilter() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (value: TimeFilterValue) => {
+      // First check if a time_filter config exists
+      const { data: existing } = await supabase
+        .from("news_collection_config")
+        .select("id")
+        .eq("type", "time_filter")
+        .single();
+
+      if (existing) {
+        // Update existing
+        const { error } = await supabase
+          .from("news_collection_config")
+          .update({ value, is_active: true })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        // Insert new
+        const { error } = await supabase
+          .from("news_collection_config")
+          .insert({ type: "time_filter", value, is_active: true });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-config"] });
+      toast.success("Intervalo de tempo atualizado");
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao atualizar: ${error.message}`);
     },
   });
 }
