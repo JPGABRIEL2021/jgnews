@@ -7,11 +7,73 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Auth helper function
+async function authenticateAdmin(req: Request): Promise<{ error?: Response; userId?: string }> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return {
+      error: new Response(
+        JSON.stringify({ error: "Unauthorized - Missing authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    };
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claims, error: claimsError } = await supabase.auth.getClaims(token);
+  
+  if (claimsError || !claims?.claims) {
+    console.error("JWT verification failed:", claimsError);
+    return {
+      error: new Response(
+        JSON.stringify({ error: "Unauthorized - Invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    };
+  }
+
+  const userId = claims.claims.sub as string;
+  
+  // Check admin role using service role key
+  const supabaseService = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data: hasRole, error: roleError } = await supabaseService.rpc("has_role", {
+    _user_id: userId,
+    _role: "admin"
+  });
+
+  if (roleError || !hasRole) {
+    console.error("Admin check failed:", roleError);
+    return {
+      error: new Response(
+        JSON.stringify({ error: "Forbidden - Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    };
+  }
+
+  return { userId };
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Authenticate admin user
+  const auth = await authenticateAdmin(req);
+  if (auth.error) {
+    return auth.error;
+  }
+
+  console.log(`🔐 Admin authenticated: ${auth.userId}`);
 
   try {
     const { topic, category } = await req.json();
