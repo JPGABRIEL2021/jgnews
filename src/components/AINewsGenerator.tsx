@@ -138,25 +138,19 @@ const AINewsGenerator = () => {
         throw new Error("Você precisa estar logado para gerar notícias");
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-news-stream`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ topic, category }),
-          signal: abortControllerRef.current.signal,
-        }
-      );
+      const { data: response, error } = await supabase.functions.invoke("generate-news-stream", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: { topic, category },
+        signal: abortControllerRef.current.signal,
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erro ao gerar notícia");
+      if (error) {
+        throw error;
       }
 
-      const reader = response.body?.getReader();
+      const reader = response?.body?.getReader();
       const decoder = new TextDecoder();
 
       if (!reader) throw new Error("No reader available");
@@ -216,10 +210,20 @@ const AINewsGenerator = () => {
     setSearchResults([]);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        throw new Error("Sua sessão expirou. Faça login novamente.");
+      }
+
       const { data, error } = await supabase.functions.invoke("search-news", {
-        body: { 
-          query: searchQuery, 
-          site: searchSource === "all" ? undefined : searchSource 
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: {
+          query: searchQuery,
+          site: searchSource === "all" ? undefined : searchSource,
         },
       });
 
@@ -258,7 +262,17 @@ const AINewsGenerator = () => {
     setRevisionSeoImprovements([]);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        throw new Error("Sua sessão expirou. Faça login novamente.");
+      }
+
       const { data, error } = await supabase.functions.invoke("revise-text", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: { text: textToRevise },
       });
 
