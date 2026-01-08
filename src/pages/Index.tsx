@@ -8,6 +8,8 @@ import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import NewsCardSkeleton from "@/components/NewsCardSkeleton";
 import PullToRefreshIndicator from "@/components/PullToRefreshIndicator";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@/hooks/usePosts";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,7 +43,8 @@ const Index = () => {
 
   return (
     <div ref={containerRef} className="min-h-screen flex flex-col bg-background">
-      {/* Pull to Refresh Indicator */}
+      {/* Offline Indicator */}
+      <OfflineIndicator />
       <PullToRefreshIndicator
         pullDistance={pullDistance}
         isRefreshing={isRefreshing}
@@ -97,6 +100,9 @@ const Index = () => {
       </main>
 
       <Footer />
+
+      {/* PWA Install Banner */}
+      <PWAInstallBanner />
     </div>
   );
 };
