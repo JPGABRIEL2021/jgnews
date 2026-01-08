@@ -2,95 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 @layer base {
   :root {
+    /* News Portal Color System */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary Red - News Brand Color */
+    --primary: 3 91% 41%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Subtle backgrounds */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 0 0% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 3 91% 41%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Custom News Colors */
+    --news-red: 3 91% 41%;
+    --news-red-dark: 3 91% 35%;
+    --news-text-primary: 0 0% 10%;
+    --news-text-secondary: 0 0% 20%;
+    --news-text-muted: 220 9% 46%;
+    --news-border: 220 13% 91%;
+    --news-bg-subtle: 220 14% 98%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Category Colors */
+    --category-politics: 230 70% 50%;
+    --category-sports: 145 63% 42%;
+    --category-tech: 200 80% 50%;
+    --category-economy: 35 95% 50%;
+    --category-entertainment: 280 65% 55%;
+    --category-world: 0 0% 30%;
 
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 3 91% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 3 91% 50%;
+
+    --news-red: 3 91% 50%;
+    --news-red-dark: 3 91% 45%;
+    --news-text-primary: 0 0% 95%;
+    --news-text-secondary: 0 0% 85%;
+    --news-text-muted: 0 0% 60%;
+    --news-border: 0 0% 20%;
+    --news-bg-subtle: 0 0% 10%;
   }
 }
 
@@ -100,6 +107,168 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight text-news-primary;
+  }
+}
+
+@layer components {
+  /* News Article Content Styling */
+  .article-content {
+    @apply text-news-secondary leading-relaxed;
+  }
+
+  .article-content h2 {
+    @apply text-2xl font-bold mt-8 mb-4 text-news-primary;
+  }
+
+  .article-content h3 {
+    @apply text-xl font-semibold mt-6 mb-3 text-news-primary;
+  }
+
+  .article-content p {
+    @apply mb-4 text-lg leading-relaxed;
+  }
+
+  .article-content ul, .article-content ol {
+    @apply mb-4 pl-6 space-y-2;
+  }
+
+  .article-content li {
+    @apply text-lg;
+  }
+
+  .article-content ul li {
+    @apply list-disc;
+  }
+
+  .article-content ol li {
+    @apply list-decimal;
+  }
+
+  .article-content blockquote {
+    @apply border-l-4 border-primary pl-4 py-2 my-6 italic bg-news-subtle;
+  }
+
+  .article-content a {
+    @apply text-primary hover:underline;
+  }
+
+  .article-content img {
+    @apply rounded-lg my-6 w-full;
+  }
+
+  .article-content strong {
+    @apply font-semibold text-news-primary;
+  }
+
+  /* Category Badge Variants */
+  .category-badge {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-semibold uppercase tracking-wide rounded;
+  }
+
+  .category-badge-politics {
+    @apply bg-blue-600 text-white;
+  }
+
+  .category-badge-sports {
+    @apply bg-green-600 text-white;
+  }
+
+  .category-badge-tech {
+    @apply bg-cyan-600 text-white;
+  }
+
+  .category-badge-economy {
+    @apply bg-amber-500 text-white;
+  }
+
+  .category-badge-entertainment {
+    @apply bg-purple-600 text-white;
+  }
+
+  .category-badge-world {
+    @apply bg-gray-700 text-white;
+  }
+
+  .category-badge-default {
+    @apply bg-primary text-white;
+  }
+
+  /* News Card Hover Effect */
+  .news-card-hover {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .news-card-hover:hover {
+    @apply shadow-md;
+  }
+
+  .news-card-hover:hover .news-card-image {
+    @apply scale-105;
+  }
+
+  .news-card-hover:hover .news-card-title {
+    @apply text-primary;
+  }
+
+  /* Headline Styles */
+  .headline-main {
+    @apply text-3xl md:text-4xl lg:text-5xl font-black leading-tight;
+  }
+
+  .headline-secondary {
+    @apply text-xl md:text-2xl font-bold leading-tight;
+  }
+
+  .headline-tertiary {
+    @apply text-lg font-semibold leading-snug;
+  }
+}
+
+@layer utilities {
+  .text-news-primary {
+    color: hsl(var(--news-text-primary));
+  }
+
+  .text-news-secondary {
+    color: hsl(var(--news-text-secondary));
+  }
+
+  .text-news-muted {
+    color: hsl(var(--news-text-muted));
+  }
+
+  .bg-news-subtle {
+    background-color: hsl(var(--news-bg-subtle));
+  }
+
+  .border-news {
+    border-color: hsl(var(--news-border));
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
