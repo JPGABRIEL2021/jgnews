@@ -165,12 +165,30 @@ serve(async (req) => {
 
     // Pick a random topic to search
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-    const siteFilters = sites.map(s => `site:${s}`).join(" OR ");
     
-    // Add "notícia" or recent qualifiers to get actual articles, not index pages
-    const searchQualifiers = ["notícia", "hoje", "acontece", "nova", "anuncia", "revela"];
-    const randomQualifier = searchQualifiers[Math.floor(Math.random() * searchQualifiers.length)];
-    const searchQuery = `(${siteFilters}) ${randomTopic} ${randomQualifier}`;
+    // Use specific news paths to avoid index pages
+    const newsPathSites = sites.map(s => {
+      // Add specific news paths for major sites
+      if (s.includes('g1.globo.com')) return 'site:g1.globo.com/*/noticia/*';
+      if (s.includes('folha.uol.com.br')) return 'site:folha.uol.com.br/*/*/*/*';
+      if (s.includes('estadao.com.br')) return 'site:estadao.com.br/*/*/*/*';
+      if (s.includes('uol.com.br')) return 'site:noticias.uol.com.br/*/*/*/*';
+      if (s.includes('terra.com.br')) return 'site:terra.com.br/noticias/*';
+      if (s.includes('r7.com')) return 'site:noticias.r7.com/*';
+      if (s.includes('cnnbrasil.com.br')) return 'site:cnnbrasil.com.br/*/*/*/*';
+      return `site:${s}`;
+    }).join(" OR ");
+    
+    // More specific event-based qualifiers that indicate actual news stories
+    const eventQualifiers = [
+      "morre", "preso", "acidente", "incêndio", "operação", 
+      "anuncia", "aprova", "rejeita", "confirma", "denuncia",
+      "investiga", "ataca", "declara", "suspende", "libera"
+    ];
+    const randomQualifier = eventQualifiers[Math.floor(Math.random() * eventQualifiers.length)];
+    
+    // Exclude common index patterns in search
+    const searchQuery = `(${newsPathSites}) ${randomTopic} ${randomQualifier} -"últimas notícias" -"veja mais" -"leia também"`;
 
     console.log(`📰 Searching: ${searchQuery}`);
 
@@ -189,14 +207,13 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         query: searchQuery,
-        limit: 10, // Get more results to filter from
+        limit: 15, // Get more results to filter from
         lang: "pt",
         country: "BR",
         tbs: tbsValue,
         scrapeOptions: {
           formats: ["markdown"],
-          onlyMainContent: true, // Focus on main article content
-          includeTags: ["img", "meta"]
+          onlyMainContent: true
         }
       }),
     });
