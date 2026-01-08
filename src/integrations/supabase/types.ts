@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      news_collection_config: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          type: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          type: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          type?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      news_collection_logs: {
+        Row: {
+          articles_collected: number | null
+          articles_found: number | null
+          completed_at: string | null
+          created_posts: Json | null
+          duration_seconds: number | null
+          error_message: string | null
+          id: string
+          search_query: string | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          articles_collected?: number | null
+          articles_found?: number | null
+          completed_at?: string | null
+          created_posts?: Json | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          search_query?: string | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          articles_collected?: number | null
+          articles_found?: number | null
+          completed_at?: string | null
+          created_posts?: Json | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          search_query?: string | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           author: string | null

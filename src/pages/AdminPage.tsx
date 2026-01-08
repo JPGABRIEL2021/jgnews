@@ -15,6 +15,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import AINewsGenerator from "@/components/AINewsGenerator";
+import NewsCollectionMonitor from "@/components/NewsCollectionMonitor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -160,6 +161,11 @@ const AdminPage = () => {
 
         {/* AI News Generator with Streaming */}
         <AINewsGenerator />
+
+        {/* News Collection Monitor */}
+        <div className="mb-8">
+          <NewsCollectionMonitor />
+        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
