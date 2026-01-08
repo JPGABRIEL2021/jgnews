@@ -1,5 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
+// Input validation schemas
+const SearchNewsSchema = z.object({
+  query: z.string()
+    .min(1, "Query is required")
+    .max(200, "Query must be less than 200 characters")
+    .regex(/^[\p{L}\p{N}\s,.:!?'"()-]+$/u, "Query contains invalid characters"),
+  site: z.string()
+    .max(100, "Site must be less than 100 characters")
+    .optional()
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,14 +92,19 @@ serve(async (req) => {
   console.log(`🔐 Admin authenticated: ${auth.userId}`);
 
   try {
-    const { query, site } = await req.json();
-
-    if (!query) {
+    const body = await req.json();
+    
+    // Validate input with zod
+    const validated = SearchNewsSchema.safeParse(body);
+    if (!validated.success) {
+      console.error("Input validation failed:", validated.error.issues);
       return new Response(
-        JSON.stringify({ error: "Query é obrigatória" }),
+        JSON.stringify({ error: "Dados inválidos", details: validated.error.issues.map(i => i.message) }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    const { query, site } = validated.data;
 
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
     if (!FIRECRAWL_API_KEY) {
