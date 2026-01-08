@@ -605,13 +605,13 @@ const AINewsGenerator = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Revision Dialog */}
+      {/* Revision Dialog - Side by Side Comparison */}
       <Dialog open={showRevision} onOpenChange={setShowRevision}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit3 size={20} />
-              Texto Revisado
+              Comparação de Revisão
             </DialogTitle>
           </DialogHeader>
 
@@ -624,13 +624,54 @@ const AINewsGenerator = () => {
                 </div>
               )}
 
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Texto Revisado
-                </label>
-                <div className="p-4 bg-muted/50 rounded-md">
-                  <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
-                    {revisedText}
+              {/* Side by Side Comparison */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-destructive/20 border border-destructive"></span>
+                    Texto Original
+                  </label>
+                  <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-md min-h-[200px]">
+                    <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
+                      {textToRevise.split(/\s+/).map((word, idx) => {
+                        const isChanged = revisionChanges.some(
+                          change => change.original.toLowerCase().includes(word.toLowerCase())
+                        );
+                        return (
+                          <span
+                            key={idx}
+                            className={isChanged ? "bg-destructive/30 text-destructive-foreground px-0.5 rounded line-through decoration-destructive" : ""}
+                          >
+                            {word}{" "}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500"></span>
+                    Texto Revisado
+                  </label>
+                  <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-md min-h-[200px]">
+                    <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
+                      {revisedText.split(/\s+/).map((word, idx) => {
+                        const isNew = revisionChanges.some(
+                          change => change.revised.toLowerCase().includes(word.toLowerCase()) &&
+                                   !change.original.toLowerCase().includes(word.toLowerCase())
+                        );
+                        return (
+                          <span
+                            key={idx}
+                            className={isNew ? "bg-green-500/30 text-green-900 dark:text-green-100 px-0.5 rounded font-medium" : ""}
+                          >
+                            {word}{" "}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -640,28 +681,29 @@ const AINewsGenerator = () => {
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     Alterações Detalhadas ({revisionChanges.length})
                   </label>
-                  <div className="space-y-2">
+                  <div className="grid gap-2">
                     {revisionChanges.map((change, index) => (
-                      <div key={index} className="p-3 border rounded-lg text-sm">
-                        <Badge variant="outline" className="mb-2">
-                          {change.type === "grammar" && "Gramática"}
-                          {change.type === "clarity" && "Clareza"}
-                          {change.type === "sensationalism" && "Sensacionalismo"}
-                          {change.type === "style" && "Estilo"}
-                        </Badge>
-                        <div className="grid grid-cols-2 gap-3 mt-2">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Original:</p>
-                            <p className="text-destructive line-through">{change.original}</p>
+                      <div key={index} className="p-3 border rounded-lg text-sm bg-muted/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline" className="text-xs">
+                            {change.type === "grammar" && "Gramática"}
+                            {change.type === "clarity" && "Clareza"}
+                            {change.type === "sensationalism" && "Sensacionalismo"}
+                            {change.type === "style" && "Estilo"}
+                          </Badge>
+                          {change.reason && (
+                            <span className="text-xs text-muted-foreground">{change.reason}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 p-2 bg-destructive/10 rounded border-l-2 border-destructive">
+                            <span className="line-through text-muted-foreground">{change.original}</span>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Corrigido:</p>
-                            <p className="text-green-600">{change.revised}</p>
+                          <span className="text-muted-foreground">→</span>
+                          <div className="flex-1 p-2 bg-green-500/10 rounded border-l-2 border-green-500">
+                            <span className="font-medium text-green-700 dark:text-green-400">{change.revised}</span>
                           </div>
                         </div>
-                        {change.reason && (
-                          <p className="text-xs text-muted-foreground mt-2 italic">{change.reason}</p>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -672,7 +714,7 @@ const AINewsGenerator = () => {
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button variant="outline" onClick={copyRevisedText} className="gap-2">
-              Copiar Texto
+              Copiar Texto Revisado
             </Button>
             <Button onClick={() => setShowRevision(false)} className="gap-2">
               <Check size={16} />
