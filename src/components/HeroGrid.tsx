@@ -18,7 +18,7 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
         {/* Main Article - Takes 2/3 on desktop */}
         <Link
           to={`/post/${mainPost.slug}`}
-          className="lg:col-span-2 group relative overflow-hidden rounded-lg news-card-hover"
+          className="lg:col-span-2 group relative overflow-hidden rounded-lg news-card-hover animate-fade-in"
         >
           <div className="aspect-[16/9] lg:aspect-[16/10] overflow-hidden">
             <img
@@ -30,10 +30,10 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8">
             <CategoryBadge category={mainPost.category} size="md" clickable={false} />
-            <h1 className="headline-main text-white mt-3 mb-2 group-hover:text-primary-foreground/90 transition-colors line-clamp-4 sm:line-clamp-3 lg:line-clamp-none">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-3 mb-2 group-hover:text-primary-foreground/90 transition-colors line-clamp-4 sm:line-clamp-3 lg:line-clamp-none leading-tight">
               {mainPost.title}
             </h1>
-            <p className="text-white/80 text-base md:text-lg line-clamp-3 sm:line-clamp-2 mb-3 hidden sm:block">
+            <p className="text-white/80 text-sm sm:text-base md:text-lg line-clamp-3 sm:line-clamp-2 mb-3 hidden sm:block">
               {mainPost.excerpt}
             </p>
             <TimeAgo date={mainPost.created_at} className="text-white/60 text-sm" />
@@ -42,11 +42,12 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
 
         {/* Side Articles - Stacked vertically */}
         <div className="flex flex-col gap-4">
-          {sidePosts.slice(0, 2).map((post) => (
+          {sidePosts.slice(0, 2).map((post, index) => (
             <Link
               key={post.id}
               to={`/post/${post.slug}`}
-              className="group relative overflow-hidden rounded-lg news-card-hover flex-1"
+              className="group relative overflow-hidden rounded-lg news-card-hover flex-1 animate-fade-in"
+              style={{ animationDelay: `${(index + 1) * 100}ms` }}
             >
               <div className="h-full min-h-[200px] overflow-hidden">
                 <img
@@ -58,7 +59,7 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <CategoryBadge category={post.category} size="sm" clickable={false} />
-                <h2 className="headline-secondary text-white mt-2 line-clamp-3 group-hover:text-primary-foreground/90 transition-colors">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold text-white mt-2 line-clamp-3 group-hover:text-primary-foreground/90 transition-colors leading-tight">
                   {post.title}
                 </h2>
                 <TimeAgo date={post.created_at} className="text-white/60 text-xs mt-2" />
