@@ -123,7 +123,15 @@ serve(async (req) => {
       .eq("type", "site")
       .eq("is_active", true);
 
-    const sites = sitesConfig?.map(s => s.value) || ["g1.globo.com", "folha.uol.com.br", "estadao.com.br"];
+    const sites = sitesConfig?.map(s => s.value) || [
+      "g1.globo.com", 
+      "folha.uol.com.br", 
+      "estadao.com.br",
+      "noticias.uol.com.br",
+      "terra.com.br/noticias",
+      "r7.com",
+      "cnnbrasil.com.br"
+    ];
 
     // Get active topics from config
     const { data: topicsConfig } = await supabase
