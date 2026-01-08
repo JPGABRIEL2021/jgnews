@@ -42,7 +42,7 @@ const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
         <img
           src={post.cover_image}
           alt={post.title}
-          className="w-full h-full object-cover news-card-image transition-transform duration-300"
+          className="w-full h-full object-cover news-card-image"
         />
       </div>
 
@@ -52,10 +52,10 @@ const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
           <CategoryBadge category={post.category} size="sm" />
           <TimeAgo date={post.created_at} className="text-xs hidden sm:inline" />
         </div>
-        <h3 className="headline-tertiary news-card-title line-clamp-2 sm:line-clamp-3 transition-colors">
+        <h3 className="headline-tertiary news-card-title line-clamp-2 sm:line-clamp-3">
           {post.title}
         </h3>
-        <p className="text-news-muted text-sm line-clamp-2 mt-1 hidden md:block">
+        <p className="text-news-muted text-sm line-clamp-2 mt-1 hidden md:block transition-colors duration-300 group-hover:text-news-secondary">
           {post.excerpt}
         </p>
         <TimeAgo date={post.created_at} className="text-xs mt-2 sm:hidden" />

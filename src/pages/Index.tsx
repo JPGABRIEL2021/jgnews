@@ -1,11 +1,12 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import HeroGrid from "@/components/HeroGrid";
+import HeroGridSkeleton from "@/components/HeroGridSkeleton";
 import NewsFeedInfinite from "@/components/NewsFeedInfinite";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import NewsCardSkeleton from "@/components/NewsCardSkeleton";
 import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@/hooks/usePosts";
 
 const Index = () => {
@@ -19,18 +20,7 @@ const Index = () => {
   const { data: breakingNews } = useBreakingNews();
 
   const nonFeaturedPosts = allPosts.filter(post => !post.is_featured && !post.is_breaking);
-
-  if (loadingFeatured || loadingPosts) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <LoadingSpinner text="Carregando notícias..." />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const isLoading = loadingFeatured || loadingPosts;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -46,7 +36,9 @@ const Index = () => {
       
       <main className="flex-1">
         {/* Hero Section */}
-        {featuredPosts.length >= 3 ? (
+        {isLoading ? (
+          <HeroGridSkeleton />
+        ) : featuredPosts.length >= 3 ? (
           <HeroGrid posts={featuredPosts} />
         ) : featuredPosts.length > 0 ? (
           <div className="container py-6">
@@ -61,7 +53,15 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              <NewsFeedInfinite posts={nonFeaturedPosts} />
+              {isLoading ? (
+                <div className="space-y-0">
+                  {[...Array(5)].map((_, i) => (
+                    <NewsCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : (
+                <NewsFeedInfinite posts={nonFeaturedPosts} />
+              )}
             </div>
 
             {/* Sidebar */}

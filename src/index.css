@@ -199,21 +199,75 @@
     @apply bg-primary text-white;
   }
 
-  /* News Card Hover Effect */
+  /* News Card Hover Effect - Smooth animations */
   .news-card-hover {
-    @apply transition-all duration-200 ease-out;
+    @apply transition-all duration-300 ease-out;
   }
 
   .news-card-hover:hover {
-    @apply shadow-md;
+    @apply shadow-lg;
+    transform: translateY(-2px);
+  }
+
+  .news-card-image {
+    @apply transition-transform duration-500 ease-out;
   }
 
   .news-card-hover:hover .news-card-image {
-    @apply scale-105;
+    @apply scale-110;
+  }
+
+  .news-card-title {
+    @apply transition-colors duration-300 ease-out;
   }
 
   .news-card-hover:hover .news-card-title {
     @apply text-primary;
+  }
+
+  /* Smooth card entrance animation */
+  .news-card-enter {
+    animation: news-card-slide-in 0.4s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes news-card-slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Image loading shimmer effect */
+  .image-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .image-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
   }
 
   /* Headline Styles */
