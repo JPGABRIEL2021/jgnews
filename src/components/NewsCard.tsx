@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Post } from "@/lib/posts";
 import CategoryBadge from "./CategoryBadge";
 import TimeAgo from "./TimeAgo";
+import OptimizedImage from "./OptimizedImage";
 
 interface NewsCardProps {
   post: Post;
@@ -15,13 +16,12 @@ const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
         to={`/post/${post.slug}`}
         className="group flex gap-3 py-3 border-b border-news last:border-b-0"
       >
-        <div className="w-24 h-16 flex-shrink-0 overflow-hidden rounded">
-          <img
-            src={post.cover_image}
-            alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+        <OptimizedImage
+          src={post.cover_image}
+          alt={post.title}
+          containerClassName="w-24 h-16 flex-shrink-0 rounded"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
         <div className="flex flex-col justify-center min-w-0">
           <h3 className="text-sm font-semibold text-news-primary line-clamp-2 group-hover:text-primary transition-colors">
             {post.title}
@@ -38,13 +38,12 @@ const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
       className="group flex gap-4 py-4 border-b border-news news-card-hover animate-fade-in"
     >
       {/* Thumbnail */}
-      <div className="w-32 sm:w-40 md:w-48 h-24 sm:h-28 md:h-32 flex-shrink-0 overflow-hidden rounded-lg">
-        <img
-          src={post.cover_image}
-          alt={post.title}
-          className="w-full h-full object-cover news-card-image"
-        />
-      </div>
+      <OptimizedImage
+        src={post.cover_image}
+        alt={post.title}
+        containerClassName="w-32 sm:w-40 md:w-48 h-24 sm:h-28 md:h-32 flex-shrink-0 rounded-lg"
+        className="w-full h-full object-cover news-card-image"
+      />
 
       {/* Content */}
       <div className="flex flex-col justify-center min-w-0 flex-1">

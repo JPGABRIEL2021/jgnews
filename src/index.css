@@ -270,6 +270,10 @@
     }
   }
 
+  .animate-shimmer {
+    animation: shimmer 1.5s infinite;
+  }
+
   /* Headline Styles */
   .headline-main {
     @apply text-3xl md:text-4xl lg:text-5xl font-black leading-tight;
