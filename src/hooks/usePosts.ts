@@ -205,24 +205,26 @@ export const useToggleBreaking = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, isBreaking, postTitle, postSlug }: { 
+    mutationFn: async ({ id, isBreaking, postTitle, postSlug, postCategory }: { 
       id: string; 
       isBreaking: boolean;
       postTitle?: string;
       postSlug?: string;
+      postCategory?: string;
     }) => {
       const result = await toggleBreaking(id, isBreaking);
       
       // Send push notification when marking as breaking news
       if (isBreaking && postTitle) {
         try {
-          console.log("Sending push notification for breaking news:", postTitle);
+          console.log("Sending push notification for breaking news:", postTitle, "category:", postCategory);
           await supabase.functions.invoke("send-push-notification", {
             body: {
               title: "🚨 URGENTE",
               body: postTitle,
               url: postSlug ? `/post/${postSlug}` : "/",
               icon: "/pwa-192x192.png",
+              category: postCategory, // Filter by category preferences
             },
           });
           console.log("Push notification sent successfully");

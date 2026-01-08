@@ -19,6 +19,7 @@ interface PushNotificationsState {
   isLoading: boolean;
   permission: NotificationPermission;
   vapidPublicKey: string | null;
+  subscriptionEndpoint: string | null;
 }
 
 export const usePushNotifications = () => {
@@ -28,6 +29,7 @@ export const usePushNotifications = () => {
     isLoading: true,
     permission: "default",
     vapidPublicKey: null,
+    subscriptionEndpoint: null,
   });
 
   const mountedRef = useRef(true);
@@ -67,10 +69,12 @@ export const usePushNotifications = () => {
         
         // Check if already subscribed
         let subscribed = false;
+        let endpoint: string | null = null;
         try {
           const registration = await navigator.serviceWorker.ready;
           const subscription = await registration.pushManager.getSubscription();
           subscribed = !!subscription;
+          endpoint = subscription?.endpoint || null;
         } catch (error) {
           console.error("Error checking subscription:", error);
         }
@@ -83,6 +87,7 @@ export const usePushNotifications = () => {
           isLoading: false,
           permission: currentPermission,
           vapidPublicKey: publicKey,
+          subscriptionEndpoint: endpoint,
         });
       } catch (error) {
         console.error("Error in checkSupport:", error);
@@ -99,7 +104,7 @@ export const usePushNotifications = () => {
     };
   }, []);
 
-  const subscribe = useCallback(async () => {
+  const subscribe = useCallback(async (categories?: string[]) => {
     if (!state.isSupported) {
       toast.error("Push notifications não são suportadas neste navegador");
       return false;
@@ -145,12 +150,16 @@ export const usePushNotifications = () => {
 
       const { data: { user } } = await supabase.auth.getUser();
 
+      // Default to all categories if none specified
+      const defaultCategories = ['Política', 'Economia', 'Tecnologia', 'Esportes', 'Cultura', 'Internacional', 'Saúde', 'Ciência'];
+
       const { error } = await supabase.from("push_subscriptions").upsert(
         {
           endpoint: subscription.endpoint,
           p256dh,
           auth: authToken,
           user_id: user?.id || null,
+          categories: categories || defaultCategories,
         },
         { onConflict: "endpoint" }
       );
@@ -163,7 +172,12 @@ export const usePushNotifications = () => {
       }
 
       if (mountedRef.current) {
-        setState(prev => ({ ...prev, isSubscribed: true, isLoading: false }));
+        setState(prev => ({ 
+          ...prev, 
+          isSubscribed: true, 
+          isLoading: false,
+          subscriptionEndpoint: subscription.endpoint,
+        }));
       }
       toast.success("Notificações ativadas com sucesso!");
       return true;
@@ -194,7 +208,12 @@ export const usePushNotifications = () => {
       }
 
       if (mountedRef.current) {
-        setState(prev => ({ ...prev, isSubscribed: false, isLoading: false }));
+        setState(prev => ({ 
+          ...prev, 
+          isSubscribed: false, 
+          isLoading: false,
+          subscriptionEndpoint: null,
+        }));
       }
       toast.success("Notificações desativadas");
       return true;
@@ -213,6 +232,7 @@ export const usePushNotifications = () => {
     isSubscribed: state.isSubscribed,
     isLoading: state.isLoading,
     permission: state.permission,
+    subscriptionEndpoint: state.subscriptionEndpoint,
     subscribe,
     unsubscribe,
   };
