@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Calendar, User } from "lucide-react";
+import DOMPurify from "dompurify";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CategoryBadge from "@/components/CategoryBadge";
@@ -120,10 +121,15 @@ const ArticlePage = () => {
             />
           </div>
 
-          {/* Article Content */}
+          {/* Article Content - Sanitized to prevent XSS */}
           <div
             className="article-content"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ 
+              __html: DOMPurify.sanitize(post.content, {
+                ALLOWED_TAGS: ['p', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'strong', 'em', 'a', 'br', 'span'],
+                ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+              })
+            }}
           />
 
           {/* Bottom Share */}
