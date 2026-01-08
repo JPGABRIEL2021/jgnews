@@ -82,13 +82,6 @@ const Header = () => {
               {searchOpen ? <X size={20} /> : <Search size={20} />}
             </Button>
 
-            {/* Admin Link */}
-            <Link to="/admin">
-              <Button variant="outline" size="sm" className="hidden md:flex">
-                Admin
-              </Button>
-            </Link>
-
             {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild>
@@ -119,12 +112,6 @@ const Header = () => {
                       {category}
                     </Link>
                   ))}
-                  <Link
-                    to="/admin"
-                    className="px-4 py-3 text-base font-medium text-primary hover:bg-secondary rounded-lg transition-colors mt-4 border-t border-news pt-4"
-                  >
-                    Painel Admin
-                  </Link>
                 </nav>
               </SheetContent>
             </Sheet>
