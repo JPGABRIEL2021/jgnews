@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -22,26 +23,26 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) {
+      console.error("OPENAI_API_KEY not configured");
       return new Response(
-        JSON.stringify({ error: "AI service not configured" }),
+        JSON.stringify({ error: "OpenAI API key not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     console.log(`Generating news for topic: ${topic}`);
 
-    // Generate news content using Lovable AI
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Generate news content using OpenAI ChatGPT
+    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -61,12 +62,14 @@ Responda APENAS com um JSON válido no seguinte formato (sem markdown, sem códi
             content: `Escreva uma notícia jornalística sobre: ${topic}`
           }
         ],
+        max_tokens: 2000,
+        temperature: 0.7,
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("AI API error:", aiResponse.status, errorText);
+      console.error("OpenAI API error:", aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
         return new Response(
@@ -74,15 +77,15 @@ Responda APENAS com um JSON válido no seguinte formato (sem markdown, sem códi
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (aiResponse.status === 402) {
+      if (aiResponse.status === 401) {
         return new Response(
-          JSON.stringify({ error: "Créditos insuficientes. Adicione créditos na sua conta Lovable." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "API key inválida. Verifique sua chave OpenAI." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
       return new Response(
-        JSON.stringify({ error: "Erro ao gerar conteúdo com IA" }),
+        JSON.stringify({ error: "Erro ao gerar conteúdo com ChatGPT" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -93,12 +96,12 @@ Responda APENAS com um JSON válido no seguinte formato (sem markdown, sem códi
     if (!content) {
       console.error("No content in AI response");
       return new Response(
-        JSON.stringify({ error: "Resposta da IA vazia" }),
+        JSON.stringify({ error: "Resposta do ChatGPT vazia" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("AI response received, parsing...");
+    console.log("ChatGPT response received, parsing...");
 
     // Parse the JSON response
     let newsData;
@@ -118,7 +121,7 @@ Responda APENAS com um JSON válido no seguinte formato (sem markdown, sem códi
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError, content);
       return new Response(
-        JSON.stringify({ error: "Erro ao processar resposta da IA" }),
+        JSON.stringify({ error: "Erro ao processar resposta do ChatGPT" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

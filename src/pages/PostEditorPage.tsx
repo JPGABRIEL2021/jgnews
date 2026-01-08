@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ImageUpload from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -203,23 +204,11 @@ const PostEditorPage = () => {
 
           {/* Cover Image */}
           <div className="space-y-2">
-            <Label htmlFor="cover_image">URL da Imagem de Capa *</Label>
-            <Input
-              id="cover_image"
+            <Label>Imagem de Capa *</Label>
+            <ImageUpload
               value={formData.cover_image}
-              onChange={(e) => setFormData(prev => ({ ...prev, cover_image: e.target.value }))}
-              placeholder="https://exemplo.com/imagem.jpg"
+              onChange={(url) => setFormData(prev => ({ ...prev, cover_image: url }))}
             />
-            {formData.cover_image && (
-              <img
-                src={formData.cover_image}
-                alt="Preview"
-                className="w-full max-w-md h-48 object-cover rounded-lg mt-2"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            )}
           </div>
 
           {/* Excerpt */}
