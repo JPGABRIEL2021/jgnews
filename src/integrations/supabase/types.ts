@@ -131,6 +131,7 @@ export type Database = {
       push_subscriptions: {
         Row: {
           auth: string
+          categories: string[] | null
           created_at: string
           endpoint: string
           id: string
@@ -140,6 +141,7 @@ export type Database = {
         }
         Insert: {
           auth: string
+          categories?: string[] | null
           created_at?: string
           endpoint: string
           id?: string
@@ -149,6 +151,7 @@ export type Database = {
         }
         Update: {
           auth?: string
+          categories?: string[] | null
           created_at?: string
           endpoint?: string
           id?: string

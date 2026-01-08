@@ -101,6 +101,7 @@ const AdminPage = () => {
       isBreaking: !post.is_breaking,
       postTitle: post.title,
       postSlug: post.slug,
+      postCategory: post.category,
     });
   };
 
