@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useSearch } from "@/hooks/useSearch";
 import SearchResults from "./SearchResults";
 import { PushNotificationButton } from "./PushNotificationButton";
+import WeatherWidget from "./WeatherWidget";
 import {
   Sheet,
   SheetContent,
@@ -155,22 +156,29 @@ const Header = () => {
         )}
 
         {/* Category Bar (Desktop) */}
-        <div className="hidden md:flex items-center gap-1 py-2 overflow-x-auto border-t border-news">
-          <Link
-            to="/"
-            className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-news-muted hover:text-primary transition-colors whitespace-nowrap"
-          >
-            Início
-          </Link>
-          {categories.map((category) => (
+        <div className="hidden md:flex items-center justify-between py-2 border-t border-news">
+          <div className="flex items-center gap-1 overflow-x-auto">
             <Link
-              key={category}
-              to={`/category/${category.toLowerCase()}`}
+              to="/"
               className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-news-muted hover:text-primary transition-colors whitespace-nowrap"
             >
-              {category}
+              Início
             </Link>
-          ))}
+            {categories.map((category) => (
+              <Link
+                key={category}
+                to={`/category/${category.toLowerCase()}`}
+                className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-news-muted hover:text-primary transition-colors whitespace-nowrap"
+              >
+                {category}
+              </Link>
+            ))}
+          </div>
+          
+          {/* Weather Widget */}
+          <div className="hidden lg:block shrink-0 ml-4">
+            <WeatherWidget />
+          </div>
         </div>
       </div>
     </header>
