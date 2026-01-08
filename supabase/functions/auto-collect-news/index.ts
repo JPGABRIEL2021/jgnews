@@ -158,7 +158,11 @@ serve(async (req) => {
     // Pick a random topic to search
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
     const siteFilters = sites.map(s => `site:${s}`).join(" OR ");
-    const searchQuery = `(${siteFilters}) ${randomTopic}`;
+    
+    // Add "notícia" or recent qualifiers to get actual articles, not index pages
+    const searchQualifiers = ["notícia", "hoje", "acontece", "nova", "anuncia", "revela"];
+    const randomQualifier = searchQualifiers[Math.floor(Math.random() * searchQualifiers.length)];
+    const searchQuery = `(${siteFilters}) ${randomTopic} ${randomQualifier}`;
 
     console.log(`📰 Searching: ${searchQuery}`);
 
@@ -177,12 +181,13 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         query: searchQuery,
-        limit: 5,
+        limit: 10, // Get more results to filter from
         lang: "pt",
         country: "BR",
         tbs: tbsValue,
         scrapeOptions: {
           formats: ["markdown"],
+          onlyMainContent: true, // Focus on main article content
           includeTags: ["img", "meta"]
         }
       }),
@@ -199,17 +204,74 @@ serve(async (req) => {
       );
     }
 
-    const results = searchData.data || [];
-    console.log(`📋 Found ${results.length} news articles`);
+    const rawResults = searchData.data || [];
+    console.log(`📋 Found ${rawResults.length} raw results`);
+
+    // Filter out index/category pages and keep only actual articles
+    const results = rawResults.filter((item: any) => {
+      const url = item.url || "";
+      const title = item.title || item.metadata?.title || "";
+      const markdown = item.markdown || "";
+      
+      // Skip index pages - these typically have short or generic URLs
+      const urlPath = url.replace(/https?:\/\/[^\/]+/, "");
+      
+      // Patterns that indicate index/category pages
+      const indexPatterns = [
+        /^\/?$/, // Root URL
+        /^\/[a-z-]+\/?$/, // Single segment like /economia/ or /esportes/
+        /^\/[a-z-]+\/[a-z-]+\/?$/, // Two segments like /economia/mercado/
+        /\/topicos?\//i, // Topics page
+        /\/categoria/i, // Category page
+        /\/tag\//i, // Tag page
+        /\/autor\//i, // Author page
+        /\/editoria\//i, // Editorial section
+        /\/colunist/i, // Columnist page
+        /\/busca/i, // Search results
+        /\/search/i,
+        /\/noticias?\/?$/i, // Generic news index
+      ];
+      
+      const isIndexPage = indexPatterns.some(pattern => pattern.test(urlPath));
+      
+      // Check if URL has article-like structure (usually has date or ID)
+      const hasArticlePattern = /\/\d{4}\/\d{2}\/|\/noticia\/|\/\d+\.|\.html?$|\/[a-z-]+-\d+/.test(urlPath);
+      
+      // Content should have substantial text (at least 500 chars for a real article)
+      const hasSubstantialContent = markdown.length > 500;
+      
+      // Title should be descriptive (more than just section name)
+      const hasDescriptiveTitle = title.length > 20 && !/(^economia$|^política$|^esportes?$|^tecnologia$|^brasil$|^notícias?$)/i.test(title.trim());
+      
+      if (isIndexPage && !hasArticlePattern) {
+        console.log(`⏭️ Skipping index page: ${url.slice(0, 80)}...`);
+        return false;
+      }
+      
+      if (!hasSubstantialContent) {
+        console.log(`⏭️ Skipping thin content: ${title.slice(0, 50)}... (${markdown.length} chars)`);
+        return false;
+      }
+      
+      if (!hasDescriptiveTitle) {
+        console.log(`⏭️ Skipping generic title: "${title}"`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    console.log(`📰 After filtering: ${results.length} valid articles`);
 
     if (results.length === 0) {
       await updateLog(supabase, logId, "success", {
-        articles_found: 0,
+        articles_found: rawResults.length,
         articles_collected: 0,
-        duration_seconds: ((Date.now() - startTime) / 1000).toFixed(2)
+        duration_seconds: ((Date.now() - startTime) / 1000).toFixed(2),
+        error_message: "Nenhum artigo válido encontrado (apenas páginas de índice)"
       });
       return new Response(
-        JSON.stringify({ success: true, message: "Nenhuma notícia encontrada", collected: 0 }),
+        JSON.stringify({ success: true, message: "Nenhum artigo válido encontrado", collected: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -222,19 +284,19 @@ serve(async (req) => {
       .limit(100);
 
     const existingTitles = new Set(
-      (existingPosts || []).map(p => p.title.toLowerCase().trim())
+      (existingPosts || []).map((p: any) => p.title.toLowerCase().trim())
     );
     
     // Create list of recent titles for AI context
     const recentTitlesList = (existingPosts || [])
       .slice(0, 30)
-      .map(p => `• ${p.title}`)
+      .map((p: any) => `• ${p.title}`)
       .join('\n');
 
     let collectedCount = 0;
     const collectedPosts: any[] = [];
 
-    // Process each news result
+    // Process each valid news result (limit to 3)
     for (const item of results.slice(0, 3)) {
       try {
         const title = item.title || item.metadata?.title;
@@ -331,11 +393,11 @@ serve(async (req) => {
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`✨ Completed! Collected ${collectedCount} articles in ${duration}s`);
+    console.log(`✨ Completed! Collected ${collectedCount} articles from ${results.length} valid (${rawResults.length} total) in ${duration}s`);
 
     // Update log with success
     await updateLog(supabase, logId, "success", {
-      articles_found: results.length,
+      articles_found: rawResults.length,
       articles_collected: collectedCount,
       duration_seconds: parseFloat(duration),
       created_posts: collectedPosts
