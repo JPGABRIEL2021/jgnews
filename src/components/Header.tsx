@@ -169,7 +169,7 @@ const Header = () => {
             >
               Início
             </Link>
-            {categories.map((category) => (
+            {categories.slice(0, 6).map((category) => (
               <Link
                 key={category}
                 to={`/category/${category.toLowerCase()}`}
@@ -178,6 +178,12 @@ const Header = () => {
                 {category}
               </Link>
             ))}
+            <Link
+              to="/categorias"
+              className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+            >
+              Ver Todas →
+            </Link>
           </div>
           
           {/* Weather Widget (Desktop) */}
