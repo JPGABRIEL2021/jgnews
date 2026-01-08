@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { categories } from "@/lib/posts";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -129,13 +130,21 @@ const AINewsGenerator = () => {
     abortControllerRef.current = new AbortController();
 
     try {
+      // Get user session token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        throw new Error("Você precisa estar logado para gerar notícias");
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-news-stream`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ topic, category }),
           signal: abortControllerRef.current.signal,
@@ -207,25 +216,15 @@ const AINewsGenerator = () => {
     setSearchResults([]);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-news`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ 
-            query: searchQuery, 
-            site: searchSource === "all" ? undefined : searchSource 
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke("search-news", {
+        body: { 
+          query: searchQuery, 
+          site: searchSource === "all" ? undefined : searchSource 
+        },
+      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao buscar notícias");
+      if (error) {
+        throw error;
       }
 
       setSearchResults(data.results || []);
@@ -259,22 +258,12 @@ const AINewsGenerator = () => {
     setRevisionSeoImprovements([]);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/revise-text`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ text: textToRevise }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke("revise-text", {
+        body: { text: textToRevise },
+      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao revisar texto");
+      if (error) {
+        throw error;
       }
 
       setRevisedText(data.revisedText || "");
