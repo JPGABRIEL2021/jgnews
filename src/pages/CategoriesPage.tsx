@@ -38,7 +38,7 @@ const categoryColors: Record<string, string> = {
   "Saúde": "from-red-500 to-red-600",
 };
 
-const CategoryCard = ({ category }: { category: string }) => {
+const CategoryCard = ({ category, index }: { category: string; index: number }) => {
   const { data: posts = [] } = useCategoryPosts(category);
   const postCount = posts.length;
   
@@ -48,7 +48,8 @@ const CategoryCard = ({ category }: { category: string }) => {
   return (
     <Link
       to={`/category/${encodeURIComponent(category)}`}
-      className="group relative overflow-hidden rounded-2xl bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300"
+      className="group relative overflow-hidden rounded-2xl bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 opacity-0 animate-fade-in"
+      style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
     >
       {/* Gradient Header */}
       <div className={`h-24 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
@@ -104,8 +105,8 @@ const CategoriesPage = () => {
         {/* Categories Grid */}
         <div className="container py-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {uniqueCategories.map((category) => (
-              <CategoryCard key={category} category={category} />
+            {uniqueCategories.map((category, index) => (
+              <CategoryCard key={category} category={category} index={index} />
             ))}
           </div>
         </div>
