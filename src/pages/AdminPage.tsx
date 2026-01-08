@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import AINewsGenerator from "@/components/AINewsGenerator";
 import NewsCollectionMonitor from "@/components/NewsCollectionMonitor";
+import NewsletterAdmin from "@/components/NewsletterAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -171,6 +172,11 @@ const AdminPage = () => {
         {/* News Collection Monitor */}
         <div className="mb-8">
           <NewsCollectionMonitor />
+        </div>
+
+        {/* Newsletter Admin */}
+        <div className="mb-8">
+          <NewsletterAdmin />
         </div>
 
         {/* Stats */}
