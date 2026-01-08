@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Plus, 
   Pencil, 
@@ -8,7 +8,8 @@ import {
   AlertTriangle, 
   ArrowLeft,
   Search,
-  MoreHorizontal
+  MoreHorizontal,
+  LogOut
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -48,14 +49,19 @@ import {
   useToggleBreaking,
   usePostsRealtime 
 } from "@/hooks/usePosts";
+import { useAuth } from "@/hooks/useAuth";
 import { Post } from "@/lib/posts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 const AdminPage = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+
+  const { user, signOut } = useAuth();
 
   // Enable realtime updates
   usePostsRealtime();
@@ -91,6 +97,16 @@ const AdminPage = () => {
     toggleBreaking.mutate({ id: post.id, isBreaking: !post.is_breaking });
   };
 
+  const handleLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error("Erro ao sair");
+      return;
+    }
+    toast.success("Você saiu do sistema");
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -113,12 +129,20 @@ const AdminPage = () => {
               Gerencie as notícias do portal
             </p>
           </div>
-          <Link to="/admin/new">
-            <Button className="gap-2">
-              <Plus size={18} />
-              Nova Notícia
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-news-muted hidden sm:inline">
+              {user?.email}
+            </span>
+            <Link to="/admin/new">
+              <Button className="gap-2">
+                <Plus size={18} />
+                <span className="hidden sm:inline">Nova Notícia</span>
+              </Button>
+            </Link>
+            <Button variant="outline" size="icon" onClick={handleLogout} title="Sair">
+              <LogOut size={18} />
             </Button>
-          </Link>
+          </div>
         </div>
 
         {/* Search */}
