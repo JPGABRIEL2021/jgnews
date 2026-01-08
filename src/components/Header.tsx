@@ -107,6 +107,12 @@ const Header = () => {
                   >
                     Início
                   </Link>
+                  <Link
+                    to="/busca"
+                    className="px-4 py-3 text-base font-medium text-news-secondary hover:bg-secondary rounded-lg transition-colors"
+                  >
+                    🔍 Busca Avançada
+                  </Link>
                   {categories.map((category) => (
                     <Link
                       key={category}
