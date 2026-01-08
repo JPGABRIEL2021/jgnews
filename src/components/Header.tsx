@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, Menu, X } from "lucide-react";
 import { categories } from "@/data/mockPosts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSearch } from "@/hooks/useSearch";
+import SearchResults from "./SearchResults";
 import {
   Sheet,
   SheetContent,
@@ -14,7 +16,33 @@ import {
 
 const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const { query, searchResults, isSearching, handleSearch, clearSearch } = useSearch();
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close search when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleCloseSearch = () => {
+    setSearchOpen(false);
+    clearSearch();
+  };
+
+  const handleToggleSearch = () => {
+    if (searchOpen) {
+      handleCloseSearch();
+    } else {
+      setSearchOpen(true);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-news shadow-sm">
@@ -48,7 +76,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setSearchOpen(!searchOpen)}
+              onClick={handleToggleSearch}
               className="text-news-muted hover:text-primary"
             >
               {searchOpen ? <X size={20} /> : <Search size={20} />}
@@ -92,16 +120,24 @@ const Header = () => {
 
         {/* Search Bar (Expandable) */}
         {searchOpen && (
-          <div className="pb-4 animate-fade-in">
+          <div className="pb-4 animate-fade-in relative" ref={searchContainerRef}>
             <div className="relative max-w-xl mx-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-news-muted" size={18} />
               <Input
                 type="search"
                 placeholder="Buscar notícias..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={query}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="pl-10 h-11 bg-secondary border-none focus-visible:ring-primary"
                 autoFocus
+              />
+              
+              {/* Search Results Dropdown */}
+              <SearchResults
+                results={searchResults}
+                query={query}
+                onClose={handleCloseSearch}
+                isVisible={isSearching && query.length >= 2}
               />
             </div>
           </div>
