@@ -24,16 +24,16 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
             <img
               src={mainPost.cover_image}
               alt={mainPost.title}
-              className="w-full h-full object-cover news-card-image transition-transform duration-500"
+              className="w-full h-full object-cover news-card-image"
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8">
             <CategoryBadge category={mainPost.category} size="md" clickable={false} />
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-3 mb-2 group-hover:text-primary-foreground/90 transition-colors line-clamp-4 sm:line-clamp-3 lg:line-clamp-none leading-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-3 mb-2 group-hover:text-primary-foreground/90 transition-colors duration-300 line-clamp-4 sm:line-clamp-3 lg:line-clamp-none leading-tight">
               {mainPost.title}
             </h1>
-            <p className="text-white/80 text-sm sm:text-base md:text-lg line-clamp-3 sm:line-clamp-2 mb-3 hidden sm:block">
+            <p className="text-white/80 text-sm sm:text-base md:text-lg line-clamp-3 sm:line-clamp-2 mb-3 hidden sm:block transition-opacity duration-300 group-hover:text-white/90">
               {mainPost.excerpt}
             </p>
             <TimeAgo date={mainPost.created_at} className="text-white/60 text-sm" />
@@ -47,19 +47,19 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
               key={post.id}
               to={`/post/${post.slug}`}
               className="group relative overflow-hidden rounded-lg news-card-hover flex-1 animate-fade-in"
-              style={{ animationDelay: `${(index + 1) * 100}ms` }}
+              style={{ animationDelay: `${(index + 1) * 150}ms`, animationFillMode: 'backwards' }}
             >
               <div className="h-full min-h-[200px] overflow-hidden">
                 <img
                   src={post.cover_image}
                   alt={post.title}
-                  className="w-full h-full object-cover news-card-image transition-transform duration-500"
+                  className="w-full h-full object-cover news-card-image"
                 />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <CategoryBadge category={post.category} size="sm" clickable={false} />
-                <h2 className="text-base sm:text-lg md:text-xl font-bold text-white mt-2 line-clamp-3 group-hover:text-primary-foreground/90 transition-colors leading-tight">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold text-white mt-2 line-clamp-3 group-hover:text-primary-foreground/90 transition-colors duration-300 leading-tight">
                   {post.title}
                 </h2>
                 <TimeAgo date={post.created_at} className="text-white/60 text-xs mt-2" />
