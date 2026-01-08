@@ -45,19 +45,17 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/contato" className="text-sm text-background/60 hover:text-primary transition-colors">
-                  Fale conosco
-                </Link>
-              </li>
-              <li>
                 <Link to="/privacidade" className="text-sm text-background/60 hover:text-primary transition-colors">
                   Política de privacidade
                 </Link>
               </li>
               <li>
-                <Link to="/termos" className="text-sm text-background/60 hover:text-primary transition-colors">
-                  Termos de uso
-                </Link>
+                <a 
+                  href="mailto:jptenorio.alves@gmail.com" 
+                  className="text-sm text-background/60 hover:text-primary transition-colors"
+                >
+                  Fale conosco
+                </a>
               </li>
             </ul>
           </div>
