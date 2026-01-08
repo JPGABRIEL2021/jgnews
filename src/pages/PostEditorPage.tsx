@@ -5,6 +5,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ImageUpload from "@/components/ImageUpload";
+import RichTextEditor from "@/components/RichTextEditor";
+import SchedulePicker from "@/components/SchedulePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +42,7 @@ const PostEditorPage = () => {
     author: "",
     is_featured: false,
     is_breaking: false,
+    scheduled_at: null,
   });
 
   // Load existing post data when editing
@@ -55,6 +58,7 @@ const PostEditorPage = () => {
         author: existingPost.author || "",
         is_featured: existingPost.is_featured,
         is_breaking: existingPost.is_breaking,
+        scheduled_at: existingPost.scheduled_at,
       });
     }
   }, [existingPost, isEditing]);
@@ -223,24 +227,26 @@ const PostEditorPage = () => {
             />
           </div>
 
-          {/* Content */}
+          {/* Content - Rich Text Editor */}
           <div className="space-y-2">
-            <Label htmlFor="content">Conteúdo (HTML) *</Label>
-            <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="<p>Escreva o conteúdo da notícia em HTML...</p>"
-              rows={12}
-              className="font-mono text-sm"
+            <Label>Conteúdo *</Label>
+            <RichTextEditor
+              content={formData.content}
+              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
+              placeholder="Escreva o conteúdo da notícia..."
             />
-            <p className="text-xs text-news-muted">
-              Você pode usar tags HTML como &lt;p&gt;, &lt;h2&gt;, &lt;blockquote&gt;, &lt;ul&gt;, &lt;li&gt;, etc.
-            </p>
+          </div>
+
+          {/* Schedule */}
+          <div className="py-4 border-t border-b border-border">
+            <SchedulePicker
+              value={formData.scheduled_at}
+              onChange={(scheduled_at) => setFormData(prev => ({ ...prev, scheduled_at }))}
+            />
           </div>
 
           {/* Toggles */}
-          <div className="flex flex-wrap gap-6 py-4 border-t border-b border-news">
+          <div className="flex flex-wrap gap-6">
             <div className="flex items-center gap-3">
               <Switch
                 id="is_featured"
@@ -265,14 +271,18 @@ const PostEditorPage = () => {
           </div>
 
           {/* Submit */}
-          <div className="flex gap-4">
+          <div className="flex gap-4 pt-4">
             <Button type="submit" disabled={isSubmitting} className="gap-2">
               {isSubmitting ? (
                 <Loader2 size={18} className="animate-spin" />
               ) : (
                 <Save size={18} />
               )}
-              {isEditing ? "Salvar Alterações" : "Publicar Notícia"}
+              {formData.scheduled_at 
+                ? "Agendar Publicação" 
+                : isEditing 
+                  ? "Salvar Alterações" 
+                  : "Publicar Notícia"}
             </Button>
             <Button type="button" variant="outline" onClick={() => navigate("/admin")}>
               Cancelar

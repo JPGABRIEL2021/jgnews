@@ -11,6 +11,7 @@ export interface Post {
   author: string | null;
   is_featured: boolean;
   is_breaking: boolean;
+  scheduled_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -18,7 +19,7 @@ export interface Post {
 export type PostInsert = Omit<Post, "id" | "created_at" | "updated_at">;
 export type PostUpdate = Partial<PostInsert>;
 
-// Fetch all posts
+// Fetch all posts (for admin - includes scheduled)
 export const fetchPosts = async (): Promise<Post[]> => {
   const { data, error } = await supabase
     .from("posts")
@@ -29,12 +30,25 @@ export const fetchPosts = async (): Promise<Post[]> => {
   return data || [];
 };
 
-// Fetch featured posts
+// Fetch published posts only (scheduled_at is null or in the past)
+export const fetchPublishedPosts = async (): Promise<Post[]> => {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*")
+    .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
+// Fetch featured posts (only published)
 export const fetchFeaturedPosts = async (): Promise<Post[]> => {
   const { data, error } = await supabase
     .from("posts")
     .select("*")
     .eq("is_featured", true)
+    .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
     .order("created_at", { ascending: false })
     .limit(3);
 
@@ -42,12 +56,13 @@ export const fetchFeaturedPosts = async (): Promise<Post[]> => {
   return data || [];
 };
 
-// Fetch breaking news
+// Fetch breaking news (only published)
 export const fetchBreakingNews = async (): Promise<Post | null> => {
   const { data, error } = await supabase
     .from("posts")
     .select("*")
     .eq("is_breaking", true)
+    .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -68,19 +83,20 @@ export const fetchPostBySlug = async (slug: string): Promise<Post | null> => {
   return data;
 };
 
-// Fetch posts by category
+// Fetch posts by category (only published)
 export const fetchPostsByCategory = async (category: string): Promise<Post[]> => {
   const { data, error } = await supabase
     .from("posts")
     .select("*")
     .ilike("category", category)
+    .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data || [];
 };
 
-// Fetch paginated posts
+// Fetch paginated posts (only published)
 export const fetchPaginatedPosts = async (
   page: number,
   limit: number,
@@ -90,6 +106,7 @@ export const fetchPaginatedPosts = async (
   let query = supabase
     .from("posts")
     .select("*")
+    .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
     .order("created_at", { ascending: false });
 
   if (excludeFeatured) {
@@ -112,12 +129,14 @@ export const fetchPaginatedPosts = async (
   };
 };
 
-// Search posts
+// Search posts (only published)
 export const searchPosts = async (query: string): Promise<Post[]> => {
+  const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("posts")
     .select("*")
     .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%,content.ilike.%${query}%,category.ilike.%${query}%`)
+    .or(`scheduled_at.is.null,scheduled_at.lte.${now}`)
     .order("created_at", { ascending: false })
     .limit(10);
 
