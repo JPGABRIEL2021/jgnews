@@ -11,7 +11,69 @@ interface PushNotificationRequest {
   body: string;
   url?: string;
   icon?: string;
-  category?: string; // Optional category filter
+  category?: string;
+}
+
+// Authentication helper - verify admin role
+async function authenticateAdmin(req: Request): Promise<{ error?: Response; userId?: string }> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return {
+      error: new Response(
+        JSON.stringify({ error: "Unauthorized - No valid authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    };
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  
+  if (error || !user) {
+    console.error("Auth error:", error?.message);
+    return {
+      error: new Response(
+        JSON.stringify({ error: "Invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    };
+  }
+
+  // Verify admin role using service role key
+  const supabaseService = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data: hasRole, error: roleError } = await supabaseService.rpc("has_role", {
+    _user_id: user.id,
+    _role: "admin"
+  });
+
+  if (roleError) {
+    console.error("Role check error:", roleError.message);
+    return {
+      error: new Response(
+        JSON.stringify({ error: "Failed to verify permissions" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    };
+  }
+
+  if (!hasRole) {
+    console.warn(`User ${user.id} attempted to send push notification without admin role`);
+    return {
+      error: new Response(
+        JSON.stringify({ error: "Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    };
+  }
+
+  return { userId: user.id };
 }
 
 // Web Push implementation for Deno
@@ -21,8 +83,6 @@ async function sendWebPush(
   vapidPublicKey: string,
   vapidPrivateKey: string
 ): Promise<Response> {
-  // Simplified push - just POST to endpoint
-  // For production, implement full VAPID authentication
   try {
     const response = await fetch(subscription.endpoint, {
       method: "POST",
@@ -46,12 +106,18 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Authenticate admin user
+    const auth = await authenticateAdmin(req);
+    if (auth.error) {
+      return auth.error;
+    }
+
+    console.log(`Admin ${auth.userId} sending push notification`);
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY")!;
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY")!;
-
-    console.log("Starting push notification send");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -68,12 +134,10 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`Sending push notification: ${title}${category ? ` for category: ${category}` : ""}`);
 
-    // Get subscriptions - filter by category if provided
-    let query = supabase.from("push_subscriptions").select("*");
-    
-    // If category is provided, filter subscriptions that include this category
-    // We'll filter in code since array containment is complex
-    const { data: subscriptions, error: fetchError } = await query;
+    // Get subscriptions
+    const { data: subscriptions, error: fetchError } = await supabase
+      .from("push_subscriptions")
+      .select("*");
 
     if (fetchError) {
       console.error("Error fetching subscriptions:", fetchError);
@@ -95,9 +159,7 @@ serve(async (req: Request): Promise<Response> => {
     const filteredSubscriptions = category
       ? subscriptions.filter((sub) => {
           const categories = sub.categories as string[] | null;
-          // If no categories set, include by default
           if (!categories || categories.length === 0) return true;
-          // Check if category is in the subscription's preferred categories
           return categories.some((c) => 
             c.toLowerCase() === category.toLowerCase()
           );
