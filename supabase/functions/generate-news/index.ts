@@ -1,0 +1,178 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { topic, category } = await req.json();
+
+    if (!topic) {
+      return new Response(
+        JSON.stringify({ error: "Topic is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "AI service not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Generating news for topic: ${topic}`);
+
+    // Generate news content using Lovable AI
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: `Você é um jornalista experiente brasileiro. Gere notícias em português brasileiro de forma profissional e objetiva.
+            
+Responda APENAS com um JSON válido no seguinte formato (sem markdown, sem código):
+{
+  "title": "Título chamativo da notícia (máximo 100 caracteres)",
+  "excerpt": "Resumo da notícia em 2-3 frases (máximo 200 caracteres)",
+  "content": "Conteúdo completo da notícia em HTML com parágrafos <p>, listas <ul><li>, citações <blockquote>. Mínimo 3 parágrafos.",
+  "slug": "slug-da-noticia-em-kebab-case",
+  "author": "Nome do Repórter"
+}`
+          },
+          {
+            role: "user",
+            content: `Escreva uma notícia jornalística sobre: ${topic}`
+          }
+        ],
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error("AI API error:", aiResponse.status, errorText);
+      
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Limite de requisições atingido. Tente novamente em alguns segundos." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Créditos insuficientes. Adicione créditos na sua conta Lovable." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      return new Response(
+        JSON.stringify({ error: "Erro ao gerar conteúdo com IA" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const aiData = await aiResponse.json();
+    const content = aiData.choices?.[0]?.message?.content;
+
+    if (!content) {
+      console.error("No content in AI response");
+      return new Response(
+        JSON.stringify({ error: "Resposta da IA vazia" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("AI response received, parsing...");
+
+    // Parse the JSON response
+    let newsData;
+    try {
+      // Clean up the response if it has markdown code blocks
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith("```json")) {
+        cleanContent = cleanContent.slice(7);
+      }
+      if (cleanContent.startsWith("```")) {
+        cleanContent = cleanContent.slice(3);
+      }
+      if (cleanContent.endsWith("```")) {
+        cleanContent = cleanContent.slice(0, -3);
+      }
+      newsData = JSON.parse(cleanContent.trim());
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", parseError, content);
+      return new Response(
+        JSON.stringify({ error: "Erro ao processar resposta da IA" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Generate a placeholder image URL (using Unsplash for free images)
+    const imageKeywords = encodeURIComponent(topic.split(" ").slice(0, 3).join(","));
+    const coverImage = `https://source.unsplash.com/800x600/?${imageKeywords},news`;
+
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Ensure unique slug
+    const timestamp = Date.now();
+    const uniqueSlug = `${newsData.slug || "noticia"}-${timestamp}`;
+
+    // Insert into posts table
+    const { data: post, error: insertError } = await supabase
+      .from("posts")
+      .insert({
+        title: newsData.title,
+        slug: uniqueSlug,
+        excerpt: newsData.excerpt,
+        content: newsData.content,
+        cover_image: coverImage,
+        category: category || "Geral",
+        author: newsData.author || "Redação IA",
+        is_featured: false,
+        is_breaking: false,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("Database insert error:", insertError);
+      return new Response(
+        JSON.stringify({ error: "Erro ao salvar notícia no banco de dados" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("News created successfully:", post.id);
+
+    return new Response(
+      JSON.stringify({ success: true, post }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
