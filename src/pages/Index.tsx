@@ -12,6 +12,7 @@ import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import SEO from "@/components/SEO";
 import { CookieConsent } from "@/components/CookieConsent";
+import HealthNewsSection from "@/components/HealthNewsSection";
 import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@/hooks/usePosts";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
@@ -78,6 +79,9 @@ const Index = () => {
             </p>
           </div>
         ) : null}
+
+        {/* Health News Section */}
+        <HealthNewsSection />
 
         {/* Content Grid */}
         <div className="container pb-8">
