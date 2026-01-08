@@ -8,11 +8,11 @@ const GenerateNewsStreamSchema = z.object({
   topic: z.string()
     .min(3, "Topic must be at least 3 characters")
     .max(500, "Topic must be less than 500 characters")
-    .regex(/^[\p{L}\p{N}\s,.:!?'"()-]+$/u, "Topic contains invalid characters"),
+    .transform(s => s.trim()),
   category: z.string()
     .min(2, "Category must be at least 2 characters")
     .max(50, "Category must be less than 50 characters")
-    .regex(/^[\p{L}\p{N}\s]+$/u, "Category contains invalid characters")
+    .transform(s => s.trim())
     .optional()
 });
 
