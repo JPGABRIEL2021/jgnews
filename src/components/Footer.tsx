@@ -53,11 +53,6 @@ const Footer = () => {
                   Política de privacidade
                 </Link>
               </li>
-              <li>
-                <Link to="/admin" className="text-sm text-background/60 hover:text-primary transition-colors">
-                  Painel Admin
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
