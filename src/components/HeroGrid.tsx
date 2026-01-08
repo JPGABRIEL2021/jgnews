@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Post } from "@/lib/posts";
 import CategoryBadge from "./CategoryBadge";
 import TimeAgo from "./TimeAgo";
+import OptimizedImage from "./OptimizedImage";
 
 interface HeroGridProps {
   posts: Post[];
@@ -20,13 +21,12 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
           to={`/post/${mainPost.slug}`}
           className="lg:col-span-2 group relative overflow-hidden rounded-lg news-card-hover animate-fade-in"
         >
-          <div className="aspect-[16/9] lg:aspect-[16/10] overflow-hidden">
-            <img
-              src={mainPost.cover_image}
-              alt={mainPost.title}
-              className="w-full h-full object-cover news-card-image"
-            />
-          </div>
+          <OptimizedImage
+            src={mainPost.cover_image}
+            alt={mainPost.title}
+            containerClassName="aspect-[16/9] lg:aspect-[16/10]"
+            className="w-full h-full object-cover news-card-image"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8">
             <CategoryBadge category={mainPost.category} size="md" clickable={false} />
@@ -49,13 +49,12 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
               className="group relative overflow-hidden rounded-lg news-card-hover flex-1 animate-fade-in"
               style={{ animationDelay: `${(index + 1) * 150}ms`, animationFillMode: 'backwards' }}
             >
-              <div className="h-full min-h-[200px] overflow-hidden">
-                <img
-                  src={post.cover_image}
-                  alt={post.title}
-                  className="w-full h-full object-cover news-card-image"
-                />
-              </div>
+              <OptimizedImage
+                src={post.cover_image}
+                alt={post.title}
+                containerClassName="h-full min-h-[200px]"
+                className="w-full h-full object-cover news-card-image"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <CategoryBadge category={post.category} size="sm" clickable={false} />

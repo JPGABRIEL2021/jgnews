@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Header from "@/components/Header";
 import HeroGrid from "@/components/HeroGrid";
 import HeroGridSkeleton from "@/components/HeroGridSkeleton";
@@ -7,10 +7,15 @@ import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import NewsCardSkeleton from "@/components/NewsCardSkeleton";
+import PullToRefreshIndicator from "@/components/PullToRefreshIndicator";
 import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@/hooks/usePosts";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Index = () => {
   const [showBreaking, setShowBreaking] = useState(true);
+  const queryClient = useQueryClient();
   
   // Enable realtime updates
   usePostsRealtime();
@@ -22,8 +27,27 @@ const Index = () => {
   const nonFeaturedPosts = allPosts.filter(post => !post.is_featured && !post.is_breaking);
   const isLoading = loadingFeatured || loadingPosts;
 
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ["posts"] });
+    await queryClient.invalidateQueries({ queryKey: ["featured-posts"] });
+    await queryClient.invalidateQueries({ queryKey: ["breaking-news"] });
+    toast.success("Notícias atualizadas!");
+  }, [queryClient]);
+
+  const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+  });
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div ref={containerRef} className="min-h-screen flex flex-col bg-background">
+      {/* Pull to Refresh Indicator */}
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        isRefreshing={isRefreshing}
+        progress={progress}
+      />
+
       {/* Breaking News Banner */}
       {showBreaking && breakingNews && (
         <BreakingNewsBanner 
