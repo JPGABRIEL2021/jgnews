@@ -142,9 +142,9 @@ const WeatherWidget = () => {
       <div className="h-8 w-px bg-border mx-2 hidden sm:block" />
 
       {/* Location */}
-      <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
-        <MapPin className="w-3 h-3" />
-        <span className="max-w-[120px] truncate">{weather.city}</span>
+      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+        <MapPin className="w-3 h-3 shrink-0" />
+        <span className="max-w-[100px] sm:max-w-[120px] truncate">{weather.city}</span>
       </div>
 
       {/* Divider */}
