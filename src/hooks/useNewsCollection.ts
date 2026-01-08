@@ -6,7 +6,7 @@ import { toast } from "sonner";
 // Types for the collection system
 export interface CollectionConfig {
   id: string;
-  type: "site" | "topic" | "time_filter";
+  type: "site" | "topic" | "time_filter" | "schedule_interval";
   value: string;
   is_active: boolean;
   created_at: string;
@@ -20,6 +20,15 @@ export const TIME_FILTER_OPTIONS: { value: TimeFilterValue; label: string }[] = 
   { value: "6h", label: "Últimas 6 horas" },
   { value: "12h", label: "Últimas 12 horas" },
   { value: "24h", label: "Últimas 24 horas" },
+];
+
+export type ScheduleIntervalValue = "30m" | "1h" | "2h" | "6h";
+
+export const SCHEDULE_INTERVAL_OPTIONS: { value: ScheduleIntervalValue; label: string; cron: string }[] = [
+  { value: "30m", label: "30 minutos", cron: "*/30 * * * *" },
+  { value: "1h", label: "1 hora", cron: "0 * * * *" },
+  { value: "2h", label: "2 horas", cron: "0 */2 * * *" },
+  { value: "6h", label: "6 horas", cron: "0 */6 * * *" },
 ];
 
 export interface CollectionLog {
@@ -129,6 +138,48 @@ export function useUpdateTimeFilter() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["collection-config"] });
       toast.success("Intervalo de tempo atualizado");
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao atualizar: ${error.message}`);
+    },
+  });
+}
+
+// Update schedule interval config and cron job
+export function useUpdateScheduleInterval() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (value: ScheduleIntervalValue) => {
+      // First, update the config in the database
+      const { data: existing } = await supabase
+        .from("news_collection_config")
+        .select("id")
+        .eq("type", "schedule_interval")
+        .single();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("news_collection_config")
+          .update({ value, is_active: true })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("news_collection_config")
+          .insert({ type: "schedule_interval", value, is_active: true });
+        if (error) throw error;
+      }
+
+      // Then, update the cron job via edge function
+      const { error: cronError } = await supabase.functions.invoke("update-cron-schedule", {
+        body: { interval: value }
+      });
+      if (cronError) throw cronError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-config"] });
+      toast.success("Agendamento atualizado");
     },
     onError: (error: Error) => {
       toast.error(`Erro ao atualizar: ${error.message}`);

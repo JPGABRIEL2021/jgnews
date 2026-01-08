@@ -48,9 +48,12 @@ import {
   useTriggerCollection,
   useCollectionLogsRealtime,
   useUpdateTimeFilter,
+  useUpdateScheduleInterval,
   CollectionLog,
   TIME_FILTER_OPTIONS,
+  SCHEDULE_INTERVAL_OPTIONS,
   TimeFilterValue,
+  ScheduleIntervalValue,
 } from "@/hooks/useNewsCollection";
 import { format, formatDistanceToNow, subDays, subWeeks, subMonths, startOfDay, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -69,6 +72,7 @@ export default function NewsCollectionMonitor() {
   const deleteConfig = useDeleteConfig();
   const triggerCollection = useTriggerCollection();
   const updateTimeFilter = useUpdateTimeFilter();
+  const updateScheduleInterval = useUpdateScheduleInterval();
 
   // Enable realtime updates and notifications
   useCollectionLogsRealtime();
@@ -76,6 +80,7 @@ export default function NewsCollectionMonitor() {
   const sites = config?.filter((c) => c.type === "site") || [];
   const topics = config?.filter((c) => c.type === "topic") || [];
   const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
+  const currentScheduleInterval = config?.find((c) => c.type === "schedule_interval")?.value as ScheduleIntervalValue | undefined;
 
   // Filter logs by period
   const filteredLogs = useMemo(() => {
@@ -472,6 +477,37 @@ export default function NewsCollectionMonitor() {
 
           <TabsContent value="settings" className="mt-3">
             <div className="space-y-4">
+              {/* Schedule Interval */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  Agendamento Automático
+                </h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Define com que frequência a coleta automática será executada.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {SCHEDULE_INTERVAL_OPTIONS.map((option) => (
+                    <Button
+                      key={option.value}
+                      variant={(currentScheduleInterval || "1h") === option.value ? "default" : "outline"}
+                      className="w-full"
+                      onClick={() => updateScheduleInterval.mutate(option.value)}
+                      disabled={updateScheduleInterval.isPending}
+                    >
+                      {updateScheduleInterval.isPending && (currentScheduleInterval || "1h") !== option.value ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : null}
+                      A cada {option.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Configuração atual: <Badge variant="secondary">A cada {SCHEDULE_INTERVAL_OPTIONS.find(o => o.value === (currentScheduleInterval || "1h"))?.label}</Badge>
+                </p>
+              </div>
+
+              {/* Time Filter */}
               <div className="bg-muted/50 rounded-lg p-4">
                 <h4 className="font-medium mb-3 flex items-center gap-2">
                   <Clock className="h-4 w-4" />
