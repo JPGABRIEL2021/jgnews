@@ -5,16 +5,35 @@ import Footer from "@/components/Footer";
 import CategoryBadge from "@/components/CategoryBadge";
 import ShareButtons from "@/components/ShareButtons";
 import NewsCard from "@/components/NewsCard";
-import { getPostBySlug, getLatestPosts } from "@/data/mockPosts";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { usePost, usePosts, usePostsRealtime } from "@/hooks/usePosts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const ArticlePage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const post = getPostBySlug(slug || "");
-  const relatedPosts = getLatestPosts(4).filter(p => p.slug !== slug);
+  
+  // Enable realtime updates
+  usePostsRealtime();
 
-  if (!post) {
+  const { data: post, isLoading, error } = usePost(slug || "");
+  const { data: allPosts = [] } = usePosts();
+  
+  const relatedPosts = allPosts.filter(p => p.slug !== slug).slice(0, 4);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <LoadingSpinner text="Carregando artigo..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !post) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -117,18 +136,20 @@ const ArticlePage = () => {
         </article>
 
         {/* Related Articles */}
-        <section className="bg-news-subtle py-8">
-          <div className="container max-w-4xl">
-            <h2 className="text-xl font-bold text-news-primary mb-6 pb-3 border-b-2 border-primary">
-              Veja também
-            </h2>
-            <div className="space-y-0">
-              {relatedPosts.map((relatedPost) => (
-                <NewsCard key={relatedPost.id} post={relatedPost} />
-              ))}
+        {relatedPosts.length > 0 && (
+          <section className="bg-news-subtle py-8">
+            <div className="container max-w-4xl">
+              <h2 className="text-xl font-bold text-news-primary mb-6 pb-3 border-b-2 border-primary">
+                Veja também
+              </h2>
+              <div className="space-y-0">
+                {relatedPosts.map((relatedPost) => (
+                  <NewsCard key={relatedPost.id} post={relatedPost} />
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       <Footer />

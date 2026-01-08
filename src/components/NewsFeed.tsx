@@ -1,4 +1,4 @@
-import { Post } from "@/data/mockPosts";
+import { Post } from "@/lib/posts";
 import NewsCard from "./NewsCard";
 
 interface NewsFeedProps {

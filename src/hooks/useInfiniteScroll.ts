@@ -1,47 +1,41 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Post } from "@/data/mockPosts";
+import { Post } from "@/lib/posts";
 
 interface UseInfiniteScrollOptions {
-  initialPosts: Post[];
+  posts: Post[];
   postsPerPage?: number;
+  isLoading?: boolean;
 }
 
 export const useInfiniteScroll = ({ 
-  initialPosts, 
-  postsPerPage = 5 
+  posts, 
+  postsPerPage = 5,
+  isLoading: externalLoading = false
 }: UseInfiniteScrollOptions) => {
-  const [displayedPosts, setDisplayedPosts] = useState<Post[]>([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [displayCount, setDisplayCount] = useState(postsPerPage);
   const [isLoading, setIsLoading] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  // Initialize with first batch
-  useEffect(() => {
-    const initialBatch = initialPosts.slice(0, postsPerPage);
-    setDisplayedPosts(initialBatch);
-    setHasMore(initialPosts.length > postsPerPage);
-  }, [initialPosts, postsPerPage]);
+  const displayedPosts = posts.slice(0, displayCount);
+  const hasMore = displayCount < posts.length;
 
   const loadMore = useCallback(() => {
-    if (isLoading || !hasMore) return;
+    if (isLoading || !hasMore || externalLoading) return;
 
     setIsLoading(true);
     
     // Simulate network delay for smooth UX
     setTimeout(() => {
-      const nextPage = page + 1;
-      const start = 0;
-      const end = nextPage * postsPerPage;
-      const newPosts = initialPosts.slice(start, end);
-      
-      setDisplayedPosts(newPosts);
-      setPage(nextPage);
-      setHasMore(end < initialPosts.length);
+      setDisplayCount(prev => Math.min(prev + postsPerPage, posts.length));
       setIsLoading(false);
     }, 300);
-  }, [initialPosts, page, postsPerPage, isLoading, hasMore]);
+  }, [posts.length, postsPerPage, isLoading, hasMore, externalLoading]);
+
+  // Reset when posts change
+  useEffect(() => {
+    setDisplayCount(postsPerPage);
+  }, [posts, postsPerPage]);
 
   // Intersection Observer setup
   useEffect(() => {
@@ -51,7 +45,7 @@ export const useInfiniteScroll = ({
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
+        if (entries[0].isIntersecting && hasMore && !isLoading && !externalLoading) {
           loadMore();
         }
       },
@@ -67,12 +61,12 @@ export const useInfiniteScroll = ({
         observerRef.current.disconnect();
       }
     };
-  }, [loadMore, hasMore, isLoading]);
+  }, [loadMore, hasMore, isLoading, externalLoading]);
 
   return {
     displayedPosts,
     hasMore,
-    isLoading,
+    isLoading: isLoading || externalLoading,
     loadMoreRef,
   };
 };

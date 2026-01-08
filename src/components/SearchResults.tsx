@@ -1,6 +1,6 @@
-import { Post } from "@/data/mockPosts";
+import { Post } from "@/lib/posts";
 import { Link } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { Search, X, Loader2 } from "lucide-react";
 import CategoryBadge from "./CategoryBadge";
 import TimeAgo from "./TimeAgo";
 
@@ -9,18 +9,26 @@ interface SearchResultsProps {
   query: string;
   onClose: () => void;
   isVisible: boolean;
+  isLoading?: boolean;
 }
 
-const SearchResults = ({ results, query, onClose, isVisible }: SearchResultsProps) => {
+const SearchResults = ({ results, query, onClose, isVisible, isLoading }: SearchResultsProps) => {
   if (!isVisible) return null;
 
   return (
     <div className="absolute top-full left-0 right-0 bg-background border border-news rounded-lg shadow-lg mt-2 max-h-[70vh] overflow-y-auto z-50 animate-fade-in">
       <div className="sticky top-0 bg-background border-b border-news p-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-news-muted">
-          <Search size={14} />
+          {isLoading ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Search size={14} />
+          )}
           <span>
-            {results.length} {results.length === 1 ? "resultado" : "resultados"} para "{query}"
+            {isLoading 
+              ? `Buscando "${query}"...`
+              : `${results.length} ${results.length === 1 ? "resultado" : "resultados"} para "${query}"`
+            }
           </span>
         </div>
         <button
@@ -32,7 +40,12 @@ const SearchResults = ({ results, query, onClose, isVisible }: SearchResultsProp
         </button>
       </div>
 
-      {results.length > 0 ? (
+      {isLoading ? (
+        <div className="p-8 text-center">
+          <Loader2 size={32} className="mx-auto text-primary animate-spin mb-3" />
+          <p className="text-news-muted">Buscando notícias...</p>
+        </div>
+      ) : results.length > 0 ? (
         <div className="divide-y divide-news">
           {results.map((post) => (
             <Link

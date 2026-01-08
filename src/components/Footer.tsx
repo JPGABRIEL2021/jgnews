@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { categories } from "@/data/mockPosts";
+import { categories } from "@/lib/posts";
 
 const Footer = () => {
   return (
@@ -54,8 +54,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-sm text-background/60 hover:text-primary transition-colors">
-                  Termos de uso
+                <Link to="/admin" className="text-sm text-background/60 hover:text-primary transition-colors">
+                  Painel Admin
                 </Link>
               </li>
             </ul>

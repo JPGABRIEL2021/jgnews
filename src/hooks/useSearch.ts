@@ -1,39 +1,26 @@
-import { useState, useMemo, useCallback } from "react";
-import { Post, mockPosts } from "@/data/mockPosts";
+import { useState, useMemo } from "react";
+import { useSearchPosts } from "@/hooks/usePosts";
+import { Post } from "@/lib/posts";
 
 export const useSearch = () => {
   const [query, setQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
+  const isSearching = query.length >= 2;
 
-  const searchResults = useMemo(() => {
-    if (!query.trim()) return [];
-    
-    const normalizedQuery = query.toLowerCase().trim();
-    
-    return mockPosts.filter((post) => {
-      const titleMatch = post.title.toLowerCase().includes(normalizedQuery);
-      const excerptMatch = post.excerpt.toLowerCase().includes(normalizedQuery);
-      const contentMatch = post.content.toLowerCase().includes(normalizedQuery);
-      const categoryMatch = post.category.toLowerCase().includes(normalizedQuery);
-      
-      return titleMatch || excerptMatch || contentMatch || categoryMatch;
-    });
-  }, [query]);
+  const { data: searchResults = [], isLoading } = useSearchPosts(query);
 
-  const handleSearch = useCallback((value: string) => {
+  const handleSearch = (value: string) => {
     setQuery(value);
-    setIsSearching(value.trim().length > 0);
-  }, []);
+  };
 
-  const clearSearch = useCallback(() => {
+  const clearSearch = () => {
     setQuery("");
-    setIsSearching(false);
-  }, []);
+  };
 
   return {
     query,
     searchResults,
     isSearching,
+    isLoading,
     handleSearch,
     clearSearch,
   };

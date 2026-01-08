@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Post } from "@/data/mockPosts";
+import { Post } from "@/lib/posts";
 import CategoryBadge from "./CategoryBadge";
 import TimeAgo from "./TimeAgo";
 
