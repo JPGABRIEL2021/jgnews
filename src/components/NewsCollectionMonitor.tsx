@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Activity,
   CheckCircle,
@@ -11,6 +11,8 @@ import {
   Play,
   Loader2,
   RefreshCw,
+  Calendar,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +21,24 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from "recharts";
 import {
   useCollectionConfig,
   useCollectionLogs,
@@ -29,15 +49,18 @@ import {
   useCollectionLogsRealtime,
   CollectionLog,
 } from "@/hooks/useNewsCollection";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, subDays, subWeeks, subMonths, startOfDay, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+type PeriodFilter = "today" | "week" | "month" | "all";
 
 export default function NewsCollectionMonitor() {
   const [newSite, setNewSite] = useState("");
   const [newTopic, setNewTopic] = useState("");
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("week");
 
   const { data: config, isLoading: configLoading } = useCollectionConfig();
-  const { data: logs, isLoading: logsLoading, refetch: refetchLogs } = useCollectionLogs();
+  const { data: allLogs, isLoading: logsLoading, refetch: refetchLogs } = useCollectionLogs(100);
   const addConfig = useAddConfig();
   const toggleConfig = useToggleConfig();
   const deleteConfig = useDeleteConfig();
@@ -48,6 +71,54 @@ export default function NewsCollectionMonitor() {
 
   const sites = config?.filter((c) => c.type === "site") || [];
   const topics = config?.filter((c) => c.type === "topic") || [];
+
+  // Filter logs by period
+  const filteredLogs = useMemo(() => {
+    if (!allLogs) return [];
+
+    const now = new Date();
+    let startDate: Date;
+
+    switch (periodFilter) {
+      case "today":
+        startDate = startOfDay(now);
+        break;
+      case "week":
+        startDate = subWeeks(now, 1);
+        break;
+      case "month":
+        startDate = subMonths(now, 1);
+        break;
+      case "all":
+      default:
+        return allLogs;
+    }
+
+    return allLogs.filter((log) => isAfter(new Date(log.started_at), startDate));
+  }, [allLogs, periodFilter]);
+
+  // Prepare chart data
+  const chartData = useMemo(() => {
+    if (!filteredLogs || filteredLogs.length === 0) return [];
+
+    // Group logs by date
+    const grouped = new Map<string, { date: string; collected: number; found: number; success: number; error: number }>();
+
+    filteredLogs.forEach((log) => {
+      const dateKey = format(new Date(log.started_at), "dd/MM", { locale: ptBR });
+      const existing = grouped.get(dateKey) || { date: dateKey, collected: 0, found: 0, success: 0, error: 0 };
+
+      existing.collected += log.articles_collected || 0;
+      existing.found += log.articles_found || 0;
+      if (log.status === "success") existing.success += 1;
+      if (log.status === "error") existing.error += 1;
+
+      grouped.set(dateKey, existing);
+    });
+
+    // Convert to array and reverse to show oldest first
+    return Array.from(grouped.values()).reverse();
+  }, [filteredLogs]);
 
   const handleAddSite = () => {
     if (!newSite.trim()) return;
@@ -61,50 +132,46 @@ export default function NewsCollectionMonitor() {
     setNewTopic("");
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "running":
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
-      case "success":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "error":
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-muted-foreground" />;
+  // Calculate stats from filtered logs
+  const totalCollections = filteredLogs?.length || 0;
+  const successfulCollections = filteredLogs?.filter((l) => l.status === "success").length || 0;
+  const totalArticlesCollected = filteredLogs?.reduce((acc, l) => acc + (l.articles_collected || 0), 0) || 0;
+  const lastCollection = filteredLogs?.[0];
+  const successRate = totalCollections > 0 ? Math.round((successfulCollections / totalCollections) * 100) : 0;
+
+  const getPeriodLabel = (period: PeriodFilter) => {
+    switch (period) {
+      case "today": return "Hoje";
+      case "week": return "Última semana";
+      case "month": return "Último mês";
+      case "all": return "Todo período";
     }
   };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "running":
-        return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">Em execução</Badge>;
-      case "success":
-        return <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">Sucesso</Badge>;
-      case "error":
-        return <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">Erro</Badge>;
-      default:
-        return <Badge variant="outline">Desconhecido</Badge>;
-    }
-  };
-
-  // Calculate stats
-  const totalCollections = logs?.length || 0;
-  const successfulCollections = logs?.filter((l) => l.status === "success").length || 0;
-  const totalArticlesCollected = logs?.reduce((acc, l) => acc + (l.articles_collected || 0), 0) || 0;
-  const lastCollection = logs?.[0];
 
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Activity className="h-5 w-5 text-primary" />
             Monitor de Coleta Automática
           </CardTitle>
           <div className="flex gap-2">
+            <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as PeriodFilter)}>
+              <SelectTrigger className="w-[140px]">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Hoje</SelectItem>
+                <SelectItem value="week">Última semana</SelectItem>
+                <SelectItem value="month">Último mês</SelectItem>
+                <SelectItem value="all">Todo período</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={() => refetchLogs()}
             >
               <RefreshCw className="h-4 w-4" />
@@ -126,10 +193,10 @@ export default function NewsCollectionMonitor() {
       </CardHeader>
       <CardContent>
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
           <div className="bg-muted/50 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-primary">{totalCollections}</div>
-            <div className="text-xs text-muted-foreground">Coletas Totais</div>
+            <div className="text-xs text-muted-foreground">Coletas</div>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-green-600">{successfulCollections}</div>
@@ -137,7 +204,11 @@ export default function NewsCollectionMonitor() {
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-blue-600">{totalArticlesCollected}</div>
-            <div className="text-xs text-muted-foreground">Artigos Coletados</div>
+            <div className="text-xs text-muted-foreground">Artigos</div>
+          </div>
+          <div className="bg-muted/50 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-amber-600">{successRate}%</div>
+            <div className="text-xs text-muted-foreground">Taxa Sucesso</div>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center">
             <div className="text-sm font-medium text-muted-foreground">
@@ -152,12 +223,109 @@ export default function NewsCollectionMonitor() {
           </div>
         </div>
 
-        <Tabs defaultValue="logs" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="chart" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="chart">
+              <TrendingUp className="h-4 w-4 mr-1" />
+              Gráfico
+            </TabsTrigger>
             <TabsTrigger value="logs">Histórico</TabsTrigger>
             <TabsTrigger value="sites">Sites ({sites.length})</TabsTrigger>
             <TabsTrigger value="topics">Tópicos ({topics.length})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="chart" className="mt-3">
+            {logsLoading ? (
+              <div className="flex items-center justify-center h-[250px]">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : chartData.length === 0 ? (
+              <div className="text-center text-muted-foreground py-12">
+                Nenhum dado para exibir no período selecionado
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Articles Collected Chart */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">Artigos Coletados por Dia</h4>
+                  <div className="h-[180px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 11 }} 
+                          className="text-muted-foreground"
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 11 }} 
+                          className="text-muted-foreground"
+                          allowDecimals={false}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--popover))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                          }}
+                          labelStyle={{ color: "hsl(var(--foreground))" }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="collected"
+                          name="Coletados"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          fillOpacity={1}
+                          fill="url(#colorCollected)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Success/Error Chart */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">Execuções por Dia</h4>
+                  <div className="h-[140px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 11 }} 
+                          className="text-muted-foreground"
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 11 }} 
+                          className="text-muted-foreground"
+                          allowDecimals={false}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--popover))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                          }}
+                          labelStyle={{ color: "hsl(var(--foreground))" }}
+                        />
+                        <Bar dataKey="success" name="Sucesso" fill="hsl(142, 76%, 36%)" radius={[2, 2, 0, 0]} />
+                        <Bar dataKey="error" name="Erro" fill="hsl(0, 84%, 60%)" radius={[2, 2, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+          </TabsContent>
 
           <TabsContent value="logs" className="mt-3">
             <ScrollArea className="h-[300px]">
@@ -165,13 +333,13 @@ export default function NewsCollectionMonitor() {
                 <div className="flex items-center justify-center h-32">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : logs?.length === 0 ? (
+              ) : filteredLogs?.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
-                  Nenhuma coleta registrada ainda
+                  Nenhuma coleta no período: {getPeriodLabel(periodFilter)}
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {logs?.map((log) => (
+                  {filteredLogs?.map((log) => (
                     <LogItem key={log.id} log={log} />
                   ))}
                 </div>
