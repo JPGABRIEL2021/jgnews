@@ -13,6 +13,10 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import SEO from "@/components/SEO";
 import { CookieConsent } from "@/components/CookieConsent";
 import HealthNewsSection from "@/components/HealthNewsSection";
+import TechNewsSection from "@/components/TechNewsSection";
+import SportsNewsSection from "@/components/SportsNewsSection";
+import MarketTicker from "@/components/MarketTicker";
+import MostReadSection from "@/components/MostReadSection";
 import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@/hooks/usePosts";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
@@ -65,6 +69,9 @@ const Index = () => {
       )}
       
       <Header />
+
+      {/* Market Ticker */}
+      <MarketTicker />
       
       <main className="flex-1">
         {/* Hero Section */}
@@ -80,8 +87,17 @@ const Index = () => {
           </div>
         ) : null}
 
+        {/* Most Read Section */}
+        <MostReadSection />
+
         {/* Health News Section */}
         <HealthNewsSection />
+
+        {/* Tech News Section */}
+        <TechNewsSection />
+
+        {/* Sports News Section */}
+        <SportsNewsSection />
 
         {/* Content Grid */}
         <div className="container pb-8">
