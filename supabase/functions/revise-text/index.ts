@@ -58,18 +58,46 @@ Sua tarefa é REVISAR o texto fornecido seguindo estas diretrizes:
    - Use linguagem formal mas acessível
    - Siga o padrão editorial de portais como Globo.com
 
+═══════════════════════════════════════
+ANÁLISE DE URGÊNCIA
+═══════════════════════════════════════
+
+Analise se o tema configura uma NOTÍCIA URGENTE.
+
+Critérios para marcação como URGENTE:
+• Impacto nacional direto na população
+• Decisão oficial de governo, Judiciário ou órgãos reguladores
+• Alteração significativa de preços, tarifas ou políticas públicas
+• Eventos de segurança pública, desastres ou emergências
+• Decisões econômicas que afetem o bolso do cidadão
+
+═══════════════════════════════════════
+SEO JORNALÍSTICO
+═══════════════════════════════════════
+
+Aplique as melhores práticas de SEO jornalístico:
+• Palavras-chave naturais no título e primeiro parágrafo
+• Títulos claros e informativos (evite ambiguidade)
+• Linguagem humana e fluida (não robótica)
+• ZERO clickbait - nunca use títulos vagos ou sensacionalistas
+• Responda "O quê?" no título e "Por que importa?" no subtítulo
+• Use sinônimos e variações das palavras-chave ao longo do texto
+
 FORMATO DA RESPOSTA:
 Retorne um JSON com a seguinte estrutura:
 {
   "revisedText": "O texto revisado completo",
+  "isUrgent": true ou false,
+  "urgentReason": "Motivo da classificação como urgente (se aplicável)",
   "changes": [
     {
-      "type": "grammar|clarity|sensationalism|style",
+      "type": "grammar|clarity|sensationalism|style|seo",
       "original": "trecho original",
       "revised": "trecho corrigido",
       "reason": "breve explicação"
     }
   ],
+  "seoImprovements": ["Lista de melhorias de SEO aplicadas"],
   "summary": "Resumo das principais alterações feitas"
 }`;
 

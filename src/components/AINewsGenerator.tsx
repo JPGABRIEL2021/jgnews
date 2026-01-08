@@ -35,6 +35,7 @@ interface ParsedContent {
   subtitle: string;
   author: string;
   content: string;
+  isUrgent: boolean;
 }
 
 interface SearchResult {
@@ -73,6 +74,7 @@ const AINewsGenerator = () => {
     subtitle: "",
     author: "",
     content: "",
+    isUrgent: false,
   });
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -89,19 +91,27 @@ const AINewsGenerator = () => {
   const [revisedText, setRevisedText] = useState("");
   const [revisionChanges, setRevisionChanges] = useState<RevisionChange[]>([]);
   const [revisionSummary, setRevisionSummary] = useState("");
+  const [revisionIsUrgent, setRevisionIsUrgent] = useState(false);
+  const [revisionUrgentReason, setRevisionUrgentReason] = useState("");
+  const [revisionSeoImprovements, setRevisionSeoImprovements] = useState<string[]>([]);
   const [showRevision, setShowRevision] = useState(false);
 
   const parseStreamedContent = (text: string): ParsedContent => {
+    const urgentMatch = text.match(/---URGENTE---\s*([\s\S]*?)(?=---TITULO---|$)/);
     const titleMatch = text.match(/---TITULO---\s*([\s\S]*?)(?=---SUBTITULO---|$)/);
     const subtitleMatch = text.match(/---SUBTITULO---\s*([\s\S]*?)(?=---AUTOR---|$)/);
     const authorMatch = text.match(/---AUTOR---\s*([\s\S]*?)(?=---CONTEUDO---|$)/);
     const contentMatch = text.match(/---CONTEUDO---\s*([\s\S]*?)$/);
+
+    const urgentText = urgentMatch?.[1]?.trim().toUpperCase() || "";
+    const isUrgent = urgentText === "SIM" || urgentText.includes("SIM");
 
     return {
       title: titleMatch?.[1]?.trim() || "",
       subtitle: subtitleMatch?.[1]?.trim() || "",
       author: authorMatch?.[1]?.trim() || "",
       content: contentMatch?.[1]?.trim() || "",
+      isUrgent,
     };
   };
 
@@ -114,7 +124,7 @@ const AINewsGenerator = () => {
     setStatus("generating");
     setShowPreview(true);
     setStreamedText("");
-    setParsedContent({ title: "", subtitle: "", author: "", content: "" });
+    setParsedContent({ title: "", subtitle: "", author: "", content: "", isUrgent: false });
 
     abortControllerRef.current = new AbortController();
 
@@ -244,6 +254,9 @@ const AINewsGenerator = () => {
     setRevisedText("");
     setRevisionChanges([]);
     setRevisionSummary("");
+    setRevisionIsUrgent(false);
+    setRevisionUrgentReason("");
+    setRevisionSeoImprovements([]);
 
     try {
       const response = await fetch(
@@ -267,6 +280,9 @@ const AINewsGenerator = () => {
       setRevisedText(data.revisedText || "");
       setRevisionChanges(data.changes || []);
       setRevisionSummary(data.summary || "");
+      setRevisionIsUrgent(data.isUrgent || false);
+      setRevisionUrgentReason(data.urgentReason || "");
+      setRevisionSeoImprovements(data.seoImprovements || []);
       setShowRevision(true);
       toast.success("Texto revisado com sucesso!");
     } catch (error) {
@@ -288,7 +304,7 @@ const AINewsGenerator = () => {
     setStatus("idle");
     setTopic("");
     setStreamedText("");
-    setParsedContent({ title: "", subtitle: "", author: "", content: "" });
+    setParsedContent({ title: "", subtitle: "", author: "", content: "", isUrgent: false });
   };
 
   const useSearchResultAsSource = (result: SearchResult) => {
@@ -477,6 +493,18 @@ const AINewsGenerator = () => {
 
           <ScrollArea className="flex-1 pr-4">
             <div className="space-y-4">
+              {/* Urgency Badge */}
+              {parsedContent.isUrgent && (
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-2">
+                  <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded animate-pulse">
+                    URGENTE
+                  </span>
+                  <span className="text-sm text-destructive font-medium">
+                    Esta notícia foi classificada como urgente pela IA
+                  </span>
+                </div>
+              )}
+
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Título</label>
                 <div className="p-3 bg-muted/50 rounded-md min-h-[40px]">
@@ -617,6 +645,36 @@ const AINewsGenerator = () => {
 
           <ScrollArea className="flex-1 pr-4">
             <div className="space-y-4">
+              {/* Urgency Alert */}
+              {revisionIsUrgent && (
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded animate-pulse">
+                      URGENTE
+                    </span>
+                    <span className="text-sm font-medium text-destructive">Notícia classificada como urgente</span>
+                  </div>
+                  {revisionUrgentReason && (
+                    <p className="text-sm text-muted-foreground mt-1">{revisionUrgentReason}</p>
+                  )}
+                </div>
+              )}
+
+              {/* SEO Improvements */}
+              {revisionSeoImprovements.length > 0 && (
+                <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-2">Melhorias de SEO Aplicadas</p>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    {revisionSeoImprovements.map((improvement, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-blue-500">•</span>
+                        {improvement}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {revisionSummary && (
                 <div className="p-3 bg-primary/10 rounded-lg">
                   <p className="text-sm font-medium text-primary">Resumo das Alterações</p>
@@ -690,6 +748,7 @@ const AINewsGenerator = () => {
                             {change.type === "clarity" && "Clareza"}
                             {change.type === "sensationalism" && "Sensacionalismo"}
                             {change.type === "style" && "Estilo"}
+                            {change.type === "seo" && "SEO"}
                           </Badge>
                           {change.reason && (
                             <span className="text-xs text-muted-foreground">{change.reason}</span>

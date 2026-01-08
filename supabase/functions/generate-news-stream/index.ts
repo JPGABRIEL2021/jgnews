@@ -48,11 +48,41 @@ REGRAS:
 • Parágrafos curtos e bem estruturados
 • Nada de opinião ou sensacionalismo
 
+═══════════════════════════════════════
+ANÁLISE DE URGÊNCIA
+═══════════════════════════════════════
+
+Analise se o tema configura uma NOTÍCIA URGENTE.
+
+Critérios para marcação como URGENTE:
+• Impacto nacional direto na população
+• Decisão oficial de governo, Judiciário ou órgãos reguladores
+• Alteração significativa de preços, tarifas ou políticas públicas
+• Eventos de segurança pública, desastres ou emergências
+• Decisões econômicas que afetem o bolso do cidadão
+
+Se o tema for urgente, indique no campo ---URGENTE--- abaixo.
+
+═══════════════════════════════════════
+SEO JORNALÍSTICO
+═══════════════════════════════════════
+
+Aplique as melhores práticas de SEO jornalístico:
+• Palavras-chave naturais no título e primeiro parágrafo
+• Títulos claros e informativos (evite ambiguidade)
+• Linguagem humana e fluida (não robótica)
+• ZERO clickbait - nunca use títulos vagos ou sensacionalistas
+• Responda "O quê?" no título e "Por que importa?" no subtítulo
+• Use sinônimos e variações das palavras-chave ao longo do texto
+
 FORMATO DE RESPOSTA:
 Responda em formato estruturado com marcadores claros:
 
+---URGENTE---
+[SIM ou NÃO]
+
 ---TITULO---
-[Título informativo, direto, com foco no impacto]
+[Título informativo, direto, com foco no impacto e palavra-chave principal]
 
 ---SUBTITULO---
 [Subtítulo que explica rapidamente o contexto e a relevância]
@@ -172,12 +202,17 @@ function parseGeneratedContent(content: string): {
   content: string;
   author: string;
   slug: string;
+  isUrgent: boolean;
 } {
+  const urgentMatch = content.match(/---URGENTE---\s*([\s\S]*?)(?=---TITULO---|$)/);
   const titleMatch = content.match(/---TITULO---\s*([\s\S]*?)(?=---SUBTITULO---|$)/);
   const subtitleMatch = content.match(/---SUBTITULO---\s*([\s\S]*?)(?=---AUTOR---|$)/);
   const authorMatch = content.match(/---AUTOR---\s*([\s\S]*?)(?=---CONTEUDO---|$)/);
   const contentMatch = content.match(/---CONTEUDO---\s*([\s\S]*?)$/);
 
+  const urgentText = urgentMatch?.[1]?.trim().toUpperCase() || "";
+  const isUrgent = urgentText === "SIM" || urgentText.includes("SIM");
+  
   const title = titleMatch?.[1]?.trim() || "Notícia sem título";
   const excerpt = subtitleMatch?.[1]?.trim() || "";
   const author = authorMatch?.[1]?.trim() || "Redação IA";
@@ -197,11 +232,12 @@ function parseGeneratedContent(content: string): {
     content: htmlContent,
     author,
     slug: `${slug}-${Date.now()}`,
+    isUrgent,
   };
 }
 
 async function savePost(
-  parsed: { title: string; excerpt: string; content: string; author: string; slug: string },
+  parsed: { title: string; excerpt: string; content: string; author: string; slug: string; isUrgent: boolean },
   category: string,
   topic: string
 ) {
@@ -223,7 +259,7 @@ async function savePost(
       category: category || "Geral",
       author: parsed.author,
       is_featured: false,
-      is_breaking: false,
+      is_breaking: parsed.isUrgent,
     })
     .select()
     .single();
