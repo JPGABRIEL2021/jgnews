@@ -60,6 +60,9 @@ const NEWS_SOURCES = [
   { value: "folha.uol.com.br", label: "Folha de S.Paulo" },
   { value: "estadao.com.br", label: "Estadão" },
   { value: "canaltech.com.br", label: "Canaltech" },
+  { value: "uol.com.br", label: "UOL" },
+  { value: "r7.com", label: "R7" },
+  { value: "terra.com.br", label: "Terra" },
 ];
 
 const AINewsGenerator = () => {
