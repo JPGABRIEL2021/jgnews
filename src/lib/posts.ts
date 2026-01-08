@@ -56,19 +56,17 @@ export const fetchFeaturedPosts = async (): Promise<Post[]> => {
   return data || [];
 };
 
-// Fetch breaking news (only published)
-export const fetchBreakingNews = async (): Promise<Post | null> => {
+// Fetch all breaking news (only published)
+export const fetchBreakingNews = async (): Promise<Post[]> => {
   const { data, error } = await supabase
     .from("posts")
     .select("*")
     .eq("is_breaking", true)
     .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data;
+  return data || [];
 };
 
 // Fetch post by slug
