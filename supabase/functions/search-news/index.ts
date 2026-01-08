@@ -22,7 +22,10 @@ const NEWS_SITES = [
   "g1.globo.com",
   "folha.uol.com.br",
   "estadao.com.br",
-  "canaltech.com.br"
+  "canaltech.com.br",
+  "uol.com.br",
+  "r7.com",
+  "terra.com.br"
 ];
 
 // Auth helper function
