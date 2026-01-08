@@ -166,29 +166,21 @@ serve(async (req) => {
     // Pick a random topic to search
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
     
-    // Use specific news paths to avoid index pages
-    const newsPathSites = sites.map(s => {
-      // Add specific news paths for major sites
-      if (s.includes('g1.globo.com')) return 'site:g1.globo.com/*/noticia/*';
-      if (s.includes('folha.uol.com.br')) return 'site:folha.uol.com.br/*/*/*/*';
-      if (s.includes('estadao.com.br')) return 'site:estadao.com.br/*/*/*/*';
-      if (s.includes('uol.com.br')) return 'site:noticias.uol.com.br/*/*/*/*';
-      if (s.includes('terra.com.br')) return 'site:terra.com.br/noticias/*';
-      if (s.includes('r7.com')) return 'site:noticias.r7.com/*';
-      if (s.includes('cnnbrasil.com.br')) return 'site:cnnbrasil.com.br/*/*/*/*';
-      return `site:${s}`;
-    }).join(" OR ");
+    // Skip URL-like topics (these are malformed entries)
+    const isValidTopic = !randomTopic.startsWith('http');
+    const effectiveTopic = isValidTopic ? randomTopic : "notícias Brasil hoje";
     
-    // More specific event-based qualifiers that indicate actual news stories
-    const eventQualifiers = [
-      "morre", "preso", "acidente", "incêndio", "operação", 
-      "anuncia", "aprova", "rejeita", "confirma", "denuncia",
-      "investiga", "ataca", "declara", "suspende", "libera"
-    ];
-    const randomQualifier = eventQualifiers[Math.floor(Math.random() * eventQualifiers.length)];
+    // Simple, effective search query - just use site restrictions without complex paths
+    const siteRestrictions = sites
+      .filter(s => !s.startsWith('http')) // Skip malformed site entries
+      .map(s => `site:${s.replace(/^https?:\/\//, '')}`)
+      .join(" OR ");
     
-    // Exclude common index patterns in search
-    const searchQuery = `(${newsPathSites}) ${randomTopic} ${randomQualifier} -"últimas notícias" -"veja mais" -"leia também"`;
+    // Build a simpler search query that actually returns results
+    // Use general news terms instead of random qualifiers that may not match
+    const searchQuery = siteRestrictions 
+      ? `(${siteRestrictions}) "${effectiveTopic}" notícia`
+      : `${effectiveTopic} notícia site:g1.globo.com OR site:uol.com.br OR site:folha.uol.com.br`;
 
     console.log(`📰 Searching: ${searchQuery}`);
 
@@ -207,7 +199,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         query: searchQuery,
-        limit: 15, // Get more results to filter from
+        limit: 20, // Get more results to filter from
         lang: "pt",
         country: "BR",
         tbs: tbsValue,
@@ -238,51 +230,42 @@ serve(async (req) => {
       const title = item.title || item.metadata?.title || "";
       const markdown = item.markdown || "";
       
-      // Skip index pages - these typically have short or generic URLs
+      // Skip if no URL
+      if (!url) return false;
+      
       const urlPath = url.replace(/https?:\/\/[^\/]+/, "");
       
-      // Patterns that indicate index/category pages
-      const indexPatterns = [
-        /^\/?$/, // Root URL
-        /^\/[a-z-]+\/?$/, // Single segment like /economia/ or /esportes/
-        /^\/[a-z-]+\/[a-z-]+\/?$/, // Two segments like /economia/mercado/
-        /\/topicos?\//i, // Topics page
-        /\/categoria/i, // Category page
-        /\/tag\//i, // Tag page
-        /\/autor\//i, // Author page
-        /\/editoria\//i, // Editorial section
-        /\/colunist/i, // Columnist page
-        /\/busca/i, // Search results
-        /\/search/i,
-        /\/noticias?\/?$/i, // Generic news index
-      ];
+      // Simple patterns that indicate index/category pages
+      const isIndexPage = /^\/?$/.test(urlPath) || // Root URL
+                          /^\/[a-z-]+\/?$/i.test(urlPath) || // Single segment
+                          /\/(busca|search|tag|categoria|topico|autor)\//i.test(urlPath);
       
-      const isIndexPage = indexPatterns.some(pattern => pattern.test(urlPath));
+      // Check if URL looks like an article (has date pattern, ID, or news-like path)
+      const hasArticlePattern = /\/\d{4}\/|\/\d{2}\/|\/noticia|\.html?$|\/\d+[-_]|[-_]\d+\./.test(urlPath);
       
-      // Check if URL has article-like structure (usually has date or ID)
-      const hasArticlePattern = /\/\d{4}\/\d{2}\/|\/noticia\/|\/\d+\.|\.html?$|\/[a-z-]+-\d+/.test(urlPath);
+      // Content should have reasonable text (at least 300 chars)
+      const hasContent = markdown.length > 300;
       
-      // Content should have substantial text (at least 500 chars for a real article)
-      const hasSubstantialContent = markdown.length > 500;
+      // Title should be descriptive
+      const hasTitle = title.length > 15;
       
-      // Title should be descriptive (more than just section name)
-      const hasDescriptiveTitle = title.length > 20 && !/(^economia$|^política$|^esportes?$|^tecnologia$|^brasil$|^notícias?$)/i.test(title.trim());
-      
+      // Accept if it has article pattern OR has content and isn't clearly an index
       if (isIndexPage && !hasArticlePattern) {
-        console.log(`⏭️ Skipping index page: ${url.slice(0, 80)}...`);
+        console.log(`⏭️ Skipping index page: ${url.slice(0, 60)}...`);
         return false;
       }
       
-      if (!hasSubstantialContent) {
-        console.log(`⏭️ Skipping thin content: ${title.slice(0, 50)}... (${markdown.length} chars)`);
+      if (!hasContent) {
+        console.log(`⏭️ Skipping thin content (${markdown.length} chars): ${title.slice(0, 40)}...`);
         return false;
       }
       
-      if (!hasDescriptiveTitle) {
-        console.log(`⏭️ Skipping generic title: "${title}"`);
+      if (!hasTitle) {
+        console.log(`⏭️ Skipping no title: ${url.slice(0, 60)}...`);
         return false;
       }
       
+      console.log(`✓ Valid article: ${title.slice(0, 50)}...`);
       return true;
     });
     
