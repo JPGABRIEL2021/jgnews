@@ -1,6 +1,20 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
+// Input validation schemas
+const GenerateNewsSchema = z.object({
+  topic: z.string()
+    .min(3, "Topic must be at least 3 characters")
+    .max(500, "Topic must be less than 500 characters")
+    .regex(/^[\p{L}\p{N}\s,.:!?'"()-]+$/u, "Topic contains invalid characters"),
+  category: z.string()
+    .min(2, "Category must be at least 2 characters")
+    .max(50, "Category must be less than 50 characters")
+    .regex(/^[\p{L}\p{N}\s]+$/u, "Category contains invalid characters")
+    .optional()
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -76,14 +90,19 @@ serve(async (req) => {
   console.log(`🔐 Admin authenticated: ${auth.userId}`);
 
   try {
-    const { topic, category } = await req.json();
-
-    if (!topic) {
+    const body = await req.json();
+    
+    // Validate input with zod
+    const validated = GenerateNewsSchema.safeParse(body);
+    if (!validated.success) {
+      console.error("Input validation failed:", validated.error.issues);
       return new Response(
-        JSON.stringify({ error: "Topic is required" }),
+        JSON.stringify({ error: "Invalid input", details: validated.error.issues.map(i => i.message) }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    const { topic, category } = validated.data;
 
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     if (!OPENAI_API_KEY) {
