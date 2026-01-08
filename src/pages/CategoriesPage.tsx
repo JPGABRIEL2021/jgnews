@@ -42,16 +42,50 @@ const categoryColors: Record<string, string> = {
 const CategoryCard = ({ category, index }: { category: string; index: number }) => {
   const { data: posts = [] } = useCategoryPosts(category);
   const postCount = posts.length;
+  const [transform, setTransform] = useState({ rotateX: 0, rotateY: 0 });
   
   const icon = categoryIcons[category] || <Globe className="w-8 h-8" />;
   const gradient = categoryColors[category] || "from-gray-500 to-gray-600";
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const rotateX = (y - centerY) / 10;
+    const rotateY = (centerX - x) / 10;
+    
+    setTransform({ rotateX, rotateY });
+  };
+
+  const handleMouseLeave = () => {
+    setTransform({ rotateX: 0, rotateY: 0 });
+  };
+
   return (
     <Link
       to={`/category/${encodeURIComponent(category)}`}
-      className="group relative overflow-hidden rounded-2xl bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 opacity-0 animate-fade-in"
-      style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
+      className="group relative overflow-hidden rounded-2xl bg-card border border-border shadow-sm hover:shadow-xl transition-shadow duration-300 opacity-0 animate-fade-in"
+      style={{ 
+        animationDelay: `${index * 100}ms`, 
+        animationFillMode: 'forwards',
+        transform: `perspective(1000px) rotateX(${transform.rotateX}deg) rotateY(${transform.rotateY}deg)`,
+        transition: 'transform 0.1s ease-out, box-shadow 0.3s ease'
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
+      {/* Shine Effect */}
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10"
+        style={{
+          background: `linear-gradient(${105 + transform.rotateY * 5}deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%)`
+        }}
+      />
+      
       {/* Gradient Header */}
       <div className={`h-24 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
         <div className="text-white opacity-90 group-hover:scale-110 transition-transform duration-300">
