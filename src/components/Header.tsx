@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSearch } from "@/hooks/useSearch";
 import SearchResults from "./SearchResults";
+import { PushNotificationButton } from "./PushNotificationButton";
 import {
   Sheet,
   SheetContent,
@@ -71,7 +72,10 @@ const Header = () => {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {/* Push Notifications */}
+            <PushNotificationButton />
+
             {/* Search Toggle */}
             <Button
               variant="ghost"
