@@ -1,6 +1,7 @@
 import { TrendingUp } from "lucide-react";
 import { Post } from "@/lib/posts";
 import NewsCard from "./NewsCard";
+import NewsletterForm from "./NewsletterForm";
 
 interface SidebarProps {
   posts: Post[];
@@ -28,6 +29,9 @@ const Sidebar = ({ posts }: SidebarProps) => {
           ))}
         </div>
       </div>
+
+      {/* Newsletter Section */}
+      <NewsletterForm />
     </aside>
   );
 };

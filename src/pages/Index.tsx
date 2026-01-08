@@ -11,6 +11,7 @@ import PullToRefreshIndicator from "@/components/PullToRefreshIndicator";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import SEO from "@/components/SEO";
+import { CookieConsent } from "@/components/CookieConsent";
 import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@/hooks/usePosts";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
@@ -106,6 +107,9 @@ const Index = () => {
 
       {/* PWA Install Banner */}
       <PWAInstallBanner />
+
+      {/* Cookie Consent Banner */}
+      <CookieConsent />
     </div>
   );
 };

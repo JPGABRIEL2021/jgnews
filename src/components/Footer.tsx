@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { categories } from "@/lib/posts";
+import { NewsletterForm } from "./NewsletterForm";
 
 const Footer = () => {
   return (
     <footer className="bg-foreground text-background mt-12">
       <div className="container py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
             <Link to="/" className="inline-block mb-4">
@@ -60,6 +61,9 @@ const Footer = () => {
               </li>
             </ul>
           </div>
+
+          {/* Newsletter */}
+          <NewsletterForm variant="footer" />
         </div>
 
         <div className="border-t border-background/10 mt-8 pt-6 text-center">
