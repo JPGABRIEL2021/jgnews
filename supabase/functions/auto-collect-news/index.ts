@@ -203,6 +203,12 @@ serve(async (req) => {
     const existingTitles = new Set(
       (existingPosts || []).map(p => p.title.toLowerCase().trim())
     );
+    
+    // Create list of recent titles for AI context
+    const recentTitlesList = (existingPosts || [])
+      .slice(0, 30)
+      .map(p => `• ${p.title}`)
+      .join('\n');
 
     let collectedCount = 0;
     const collectedPosts: any[] = [];
@@ -248,7 +254,8 @@ serve(async (req) => {
           title,
           description,
           markdown,
-          url
+          url,
+          recentTitlesList
         );
 
         if (!article) {
@@ -362,7 +369,8 @@ async function generateArticle(
   originalTitle: string,
   description: string,
   markdown: string,
-  sourceUrl: string
+  sourceUrl: string,
+  recentTitles: string
 ): Promise<{
   title: string;
   excerpt: string;
@@ -382,6 +390,11 @@ REGRAS:
 • NÃO mencione fontes externas ou sites de onde a notícia foi obtida
 • NÃO adicione seções de "Informações relevantes", "Saiba mais", "Leia também" ou similares
 • Apenas o conteúdo da notícia, sem referências externas
+
+⚠️ REGRA CRÍTICA DE DUPLICAÇÃO:
+• Se a notícia for sobre o MESMO ASSUNTO de alguma notícia já publicada (listadas abaixo), responda APENAS com: ---DUPLICADA---
+• Considere duplicada se tiver o mesmo tema principal, mesmo evento, ou informações muito semelhantes
+• Variações do mesmo assunto também são duplicadas
 
 FORMATO DE RESPOSTA:
 ---URGENTE---
@@ -406,7 +419,10 @@ DESCRIÇÃO: ${description}
 CONTEÚDO:
 ${markdown.slice(0, 4000)}
 
-FONTE: ${sourceUrl}`;
+FONTE: ${sourceUrl}
+
+📰 NOTÍCIAS JÁ PUBLICADAS (NÃO REPETIR ESTES ASSUNTOS):
+${recentTitles || 'Nenhuma notícia anterior'}`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -433,6 +449,12 @@ FONTE: ${sourceUrl}`;
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
+
+    // Check if AI detected duplicate
+    if (content.includes("---DUPLICADA---")) {
+      console.log("⏭️ AI detected duplicate content, skipping...");
+      return null;
+    }
 
     return parseGeneratedContent(content);
   } catch (err) {
