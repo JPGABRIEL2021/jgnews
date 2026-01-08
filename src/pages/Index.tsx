@@ -26,7 +26,7 @@ const Index = () => {
 
   const { data: featuredPosts = [], isLoading: loadingFeatured } = useFeaturedPosts();
   const { data: allPosts = [], isLoading: loadingPosts } = usePosts();
-  const { data: breakingNews } = useBreakingNews();
+  const { data: breakingNews = [] } = useBreakingNews();
 
   const nonFeaturedPosts = allPosts.filter(post => !post.is_featured && !post.is_breaking);
   const isLoading = loadingFeatured || loadingPosts;
@@ -56,7 +56,7 @@ const Index = () => {
       />
 
       {/* Breaking News Banner */}
-      {showBreaking && breakingNews && (
+      {showBreaking && breakingNews.length > 0 && (
         <BreakingNewsBanner 
           news={breakingNews} 
           onDismiss={() => setShowBreaking(false)} 
