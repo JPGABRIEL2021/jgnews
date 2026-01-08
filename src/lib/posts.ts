@@ -83,6 +83,18 @@ export const fetchPostBySlug = async (slug: string): Promise<Post | null> => {
   return data;
 };
 
+// Fetch post by ID
+export const fetchPostById = async (id: string): Promise<Post | null> => {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+};
+
 // Fetch posts by category (only published)
 export const fetchPostsByCategory = async (category: string): Promise<Post[]> => {
   const { data, error } = await supabase

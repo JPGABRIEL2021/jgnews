@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreatePost, useUpdatePost, usePost } from "@/hooks/usePosts";
+import { useCreatePost, useUpdatePost, usePostById } from "@/hooks/usePosts";
 import { categories, PostInsert } from "@/lib/posts";
 import { toast } from "sonner";
 
@@ -28,7 +28,7 @@ const PostEditorPage = () => {
   const navigate = useNavigate();
   const isEditing = !!id;
 
-  const { data: existingPost, isLoading: loadingPost } = usePost(id || "");
+  const { data: existingPost, isLoading: loadingPost } = usePostById(id || "");
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
 

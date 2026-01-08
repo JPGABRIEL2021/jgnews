@@ -6,6 +6,7 @@ import {
   fetchFeaturedPosts,
   fetchBreakingNews,
   fetchPostBySlug,
+  fetchPostById,
   fetchPostsByCategory,
   searchPosts,
   createPost,
@@ -98,6 +99,15 @@ export const usePost = (slug: string) => {
     queryKey: ["post", slug],
     queryFn: () => fetchPostBySlug(slug),
     enabled: !!slug,
+  });
+};
+
+// Fetch post by ID
+export const usePostById = (id: string) => {
+  return useQuery({
+    queryKey: ["post-by-id", id],
+    queryFn: () => fetchPostById(id),
+    enabled: !!id,
   });
 };
 
