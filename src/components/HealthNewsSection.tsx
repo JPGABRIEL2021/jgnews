@@ -31,7 +31,7 @@ const HealthNewsSection = () => {
             </div>
           </div>
           <Link 
-            to="/categoria/Saúde" 
+            to="/category/Saúde" 
             className="flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors"
           >
             Ver todas
