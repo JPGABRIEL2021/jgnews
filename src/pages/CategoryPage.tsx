@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import NewsFeed from "@/components/NewsFeed";
 import Sidebar from "@/components/Sidebar";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import SEO from "@/components/SEO";
 import { useCategoryPosts, usePosts, usePostsRealtime } from "@/hooks/usePosts";
 import { categories } from "@/lib/posts";
 
@@ -36,6 +37,11 @@ const CategoryPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title={`Notícias de ${categoryName}`}
+        description={`Acompanhe as últimas notícias de ${categoryName}. Cobertura completa e atualizada no JG News.`}
+        keywords={`${categoryName}, notícias, atualidades, Brasil`}
+      />
       <Header />
 
       <main className="flex-1">

@@ -7,6 +7,7 @@ import CategoryBadge from "@/components/CategoryBadge";
 import ShareButtons from "@/components/ShareButtons";
 import NewsCard from "@/components/NewsCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import SEO from "@/components/SEO";
 import { usePost, usePosts, usePostsRealtime } from "@/hooks/usePosts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -59,6 +60,19 @@ const ArticlePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title={post.title}
+        description={post.excerpt}
+        image={post.cover_image}
+        type="article"
+        article={{
+          publishedTime: post.created_at,
+          modifiedTime: post.updated_at,
+          author: post.author || "Redação JG News",
+          category: post.category,
+        }}
+        keywords={`${post.category}, notícias, ${post.title.split(" ").slice(0, 5).join(", ")}`}
+      />
       <Header />
 
       <main className="flex-1">
