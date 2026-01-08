@@ -8,10 +8,24 @@ export interface Post {
   category: string;
   created_at: string;
   is_featured: boolean;
+  is_breaking?: boolean;
   author?: string;
 }
 
 export const mockPosts: Post[] = [
+  {
+    id: "0",
+    title: "URGENTE: Banco Central anuncia nova taxa de juros em decisão histórica",
+    slug: "banco-central-nova-taxa-juros-historica",
+    excerpt: "Em reunião extraordinária, o Copom decidiu por unanimidade alterar a Selic, surpreendendo o mercado financeiro.",
+    content: `<p>O Banco Central anunciou há poucos minutos uma decisão histórica sobre a taxa básica de juros do país. A mudança, que surpreendeu analistas do mercado, foi decidida por unanimidade pelos membros do Comitê de Política Monetária.</p>`,
+    cover_image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop",
+    category: "Economia",
+    created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    is_featured: false,
+    is_breaking: true,
+    author: "Redação JG News"
+  },
   {
     id: "1",
     title: "Governo anuncia pacote de medidas econômicas para impulsionar crescimento em 2025",
@@ -202,6 +216,10 @@ export const getLatestPosts = (limit?: number): Post[] => {
     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
   return limit ? sorted.slice(0, limit) : sorted;
+};
+
+export const getBreakingNews = (): Post | null => {
+  return mockPosts.find(post => post.is_breaking) || null;
 };
 
 export const categories = [
