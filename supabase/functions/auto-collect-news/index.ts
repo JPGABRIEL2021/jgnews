@@ -99,7 +99,8 @@ serve(async (req) => {
         country: "BR",
         tbs: "qdr:d",
         scrapeOptions: {
-          formats: ["markdown"]
+          formats: ["markdown"],
+          includeTags: ["img", "meta"]
         }
       }),
     });
@@ -151,6 +152,18 @@ serve(async (req) => {
         const description = item.description || item.metadata?.description || "";
         const markdown = item.markdown || "";
         const url = item.url;
+        
+        // Extract original image from metadata
+        const ogImage = item.metadata?.ogImage || item.metadata?.["og:image"];
+        const twitterImage = item.metadata?.["twitter:image"];
+        const sourceImage = item.metadata?.sourceURL ? `${new URL(item.metadata.sourceURL).origin}/favicon.ico` : null;
+        
+        // Try to extract image from markdown content
+        const markdownImageMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s\)]+\.(jpg|jpeg|png|webp|gif)[^\s\)]*)\)/i);
+        const markdownImage = markdownImageMatch?.[1];
+        
+        // Priority: og:image > twitter:image > markdown image > fallback
+        const originalImage = ogImage || twitterImage || markdownImage || null;
 
         if (!title || !markdown) {
           console.log("⏭️ Skipping item without title or content");
@@ -165,6 +178,7 @@ serve(async (req) => {
         }
 
         console.log(`🤖 Generating article from: ${title.slice(0, 60)}...`);
+        console.log(`🖼️ Original image found: ${originalImage ? originalImage.slice(0, 80) + '...' : 'None'}`);
 
         // Generate article using AI
         const article = await generateArticle(
@@ -183,9 +197,8 @@ serve(async (req) => {
         // Determine category based on content
         const category = detectCategory(article.content, title);
 
-        // Generate image URL
-        const imageKeywords = encodeURIComponent(title.split(" ").slice(0, 3).join(","));
-        const coverImage = `https://source.unsplash.com/800x600/?${imageKeywords},news`;
+        // Use original image or fallback to Unsplash
+        const coverImage = originalImage || `https://source.unsplash.com/800x600/?${encodeURIComponent(title.split(" ").slice(0, 3).join(","))},news`;
 
         // Save to database
         const { data: post, error } = await supabase
