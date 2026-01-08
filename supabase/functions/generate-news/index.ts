@@ -142,12 +142,13 @@ REGRAS:
 • Parágrafos curtos e bem estruturados
 • Nada de opinião ou sensacionalismo
 
-ESTRUTURA OBRIGATÓRIA DA MATÉRIA:
+ESTRUTURA DO CONTEÚDO (SIGA ESTA ORDEM, MAS NÃO ESCREVA OS NOMES DAS SEÇÕES NO TEXTO):
+1. Primeiro parágrafo: o que aconteceu, onde, quando e por quê
+2. Desenvolvimento: contexto histórico, causas e consequências com dados relevantes
+3. Impacto: como isso afeta o dia a dia do cidadão comum
+4. Conclusão: relação com economia, política ou sociedade
 
-1. LEAD - Responde: o que aconteceu, onde, quando e por quê
-2. CORPO DA MATÉRIA - Desenvolva o tema com contexto histórico, explique causas e consequências, traga dados relevantes
-3. IMPACTO PARA O LEITOR - Como isso afeta o dia a dia do cidadão comum
-4. CONTEXTO AMPLIADO - Relacione com economia, política ou sociedade, se aplicável
+IMPORTANTE: NÃO escreva rótulos como "LEAD", "CORPO", "IMPACTO", "CONTEXTO AMPLIADO" no texto. Escreva o conteúdo de forma fluida e natural, como em uma matéria de jornal real. O texto deve fluir naturalmente sem divisões visíveis.
 
 FINALIZE com tom informativo e equilibrado, como em uma reportagem publicada na home de um grande portal.
 
@@ -155,7 +156,7 @@ Responda APENAS com um JSON válido no seguinte formato (sem markdown, sem códi
 {
   "title": "Título informativo, direto, com foco no impacto (máximo 100 caracteres)",
   "excerpt": "Subtítulo que explica rapidamente o contexto e a relevância (máximo 200 caracteres)",
-  "content": "Conteúdo completo em HTML com parágrafos <p>, subtítulos <h3>, listas <ul><li>, citações <blockquote>. Siga a estrutura obrigatória acima. Mínimo 5 parágrafos.",
+  "content": "Conteúdo completo em HTML com parágrafos <p>, subtítulos <h3>, listas <ul><li>, citações <blockquote>. NÃO inclua rótulos de seção. Mínimo 5 parágrafos.",
   "slug": "slug-da-noticia-em-kebab-case",
   "author": "Nome do Repórter"
 }`

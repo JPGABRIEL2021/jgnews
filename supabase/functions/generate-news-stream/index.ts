@@ -174,11 +174,13 @@ Responda em formato estruturado com marcadores claros:
 ---CONTEUDO---
 [Conteúdo completo em HTML com parágrafos <p>, subtítulos <h3>, listas <ul><li>]
 
-ESTRUTURA DO CONTEÚDO:
-1. LEAD - o que aconteceu, onde, quando e por quê
-2. CORPO - contexto, causas e consequências
-3. IMPACTO - como afeta o cidadão
-4. CONTEXTO AMPLIADO - relação com economia/política/sociedade`;
+ESTRUTURA DO CONTEÚDO (SIGA ESTA ORDEM, MAS NÃO ESCREVA OS NOMES DAS SEÇÕES NO TEXTO):
+1. Primeiro parágrafo: o que aconteceu, onde, quando e por quê
+2. Desenvolvimento: contexto histórico, causas e consequências com dados relevantes
+3. Impacto: como isso afeta o dia a dia do cidadão comum
+4. Conclusão: relação com economia, política ou sociedade
+
+IMPORTANTE: NÃO escreva os rótulos "LEAD", "CORPO", "IMPACTO", "CONTEXTO AMPLIADO" no texto. Escreva o conteúdo de forma fluida e natural, como em uma matéria de jornal real.`;
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
