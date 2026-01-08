@@ -1,0 +1,37 @@
+-- Create newsletter subscribers table
+CREATE TABLE public.newsletter_subscribers (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  subscribed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  unsubscribed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+
+-- Allow anyone to insert (subscribe)
+CREATE POLICY "Anyone can subscribe to newsletter"
+ON public.newsletter_subscribers
+FOR INSERT
+WITH CHECK (true);
+
+-- Only allow reading own subscription (for unsubscribe functionality)
+CREATE POLICY "Users can view their own subscription"
+ON public.newsletter_subscribers
+FOR SELECT
+USING (true);
+
+-- Allow updating own subscription (for unsubscribe)
+CREATE POLICY "Anyone can update subscriptions"
+ON public.newsletter_subscribers
+FOR UPDATE
+USING (true);
+
+-- Create index for email lookups
+CREATE INDEX idx_newsletter_email ON public.newsletter_subscribers(email);
+
+-- Add comment
+COMMENT ON TABLE public.newsletter_subscribers IS 'Newsletter email subscribers';
