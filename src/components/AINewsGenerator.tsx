@@ -584,8 +584,8 @@ const AINewsGenerator = () => {
             </DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-4">
+          <ScrollArea className="flex-1 max-h-[60vh] pr-4">
+            <div className="space-y-4 pb-2">
               {searchResults.map((result, index) => (
                 <div key={index} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                   <div className="flex items-start justify-between gap-4">
