@@ -7,20 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const NEWS_SITES = [
-  "g1.globo.com",
-  "folha.uol.com.br",
-  "estadao.com.br"
-];
-
-const SEARCH_TOPICS = [
-  "últimas notícias Brasil",
-  "economia brasileira",
-  "política nacional",
-  "tecnologia",
-  "esportes",
-];
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -29,14 +15,30 @@ serve(async (req) => {
   const startTime = Date.now();
   console.log("🚀 Starting automatic news collection...");
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Create log entry
+  const { data: logEntry, error: logError } = await supabase
+    .from("news_collection_logs")
+    .insert({ status: "running" })
+    .select()
+    .single();
+
+  if (logError) {
+    console.error("Failed to create log entry:", logError);
+  }
+
+  const logId = logEntry?.id;
+
   try {
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!FIRECRAWL_API_KEY) {
       console.error("FIRECRAWL_API_KEY not configured");
+      await updateLog(supabase, logId, "error", { error_message: "Firecrawl não configurado" });
       return new Response(
         JSON.stringify({ error: "Firecrawl não configurado" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -45,20 +47,43 @@ serve(async (req) => {
 
     if (!OPENAI_API_KEY) {
       console.error("OPENAI_API_KEY not configured");
+      await updateLog(supabase, logId, "error", { error_message: "OpenAI não configurado" });
       return new Response(
         JSON.stringify({ error: "OpenAI não configurado" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Get active sites from config
+    const { data: sitesConfig } = await supabase
+      .from("news_collection_config")
+      .select("value")
+      .eq("type", "site")
+      .eq("is_active", true);
+
+    const sites = sitesConfig?.map(s => s.value) || ["g1.globo.com", "folha.uol.com.br", "estadao.com.br"];
+
+    // Get active topics from config
+    const { data: topicsConfig } = await supabase
+      .from("news_collection_config")
+      .select("value")
+      .eq("type", "topic")
+      .eq("is_active", true);
+
+    const topics = topicsConfig?.map(t => t.value) || ["últimas notícias Brasil"];
 
     // Pick a random topic to search
-    const randomTopic = SEARCH_TOPICS[Math.floor(Math.random() * SEARCH_TOPICS.length)];
-    const siteFilters = NEWS_SITES.map(s => `site:${s}`).join(" OR ");
+    const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+    const siteFilters = sites.map(s => `site:${s}`).join(" OR ");
     const searchQuery = `(${siteFilters}) ${randomTopic}`;
 
     console.log(`📰 Searching: ${searchQuery}`);
+
+    // Update log with search query
+    await supabase
+      .from("news_collection_logs")
+      .update({ search_query: searchQuery })
+      .eq("id", logId);
 
     // Search for news using Firecrawl
     const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
@@ -72,7 +97,7 @@ serve(async (req) => {
         limit: 5,
         lang: "pt",
         country: "BR",
-        tbs: "qdr:d", // Last day
+        tbs: "qdr:d",
         scrapeOptions: {
           formats: ["markdown"]
         }
@@ -83,6 +108,7 @@ serve(async (req) => {
 
     if (!searchResponse.ok) {
       console.error("Firecrawl API error:", searchData);
+      await updateLog(supabase, logId, "error", { error_message: searchData.error || "Erro ao buscar notícias" });
       return new Response(
         JSON.stringify({ error: searchData.error || "Erro ao buscar notícias" }),
         { status: searchResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -93,6 +119,11 @@ serve(async (req) => {
     console.log(`📋 Found ${results.length} news articles`);
 
     if (results.length === 0) {
+      await updateLog(supabase, logId, "success", {
+        articles_found: 0,
+        articles_collected: 0,
+        duration_seconds: ((Date.now() - startTime) / 1000).toFixed(2)
+      });
       return new Response(
         JSON.stringify({ success: true, message: "Nenhuma notícia encontrada", collected: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -114,7 +145,7 @@ serve(async (req) => {
     const collectedPosts: any[] = [];
 
     // Process each news result
-    for (const item of results.slice(0, 3)) { // Process max 3 to avoid rate limits
+    for (const item of results.slice(0, 3)) {
       try {
         const title = item.title || item.metadata?.title;
         const description = item.description || item.metadata?.description || "";
@@ -180,7 +211,12 @@ serve(async (req) => {
 
         console.log(`✅ Saved: ${article.title.slice(0, 50)}...`);
         collectedCount++;
-        collectedPosts.push(post);
+        collectedPosts.push({
+          id: post.id,
+          title: post.title,
+          category: post.category,
+          is_breaking: post.is_breaking
+        });
         existingTitles.add(normalizedTitle);
 
         // Small delay between API calls
@@ -193,6 +229,14 @@ serve(async (req) => {
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`✨ Completed! Collected ${collectedCount} articles in ${duration}s`);
+
+    // Update log with success
+    await updateLog(supabase, logId, "success", {
+      articles_found: results.length,
+      articles_collected: collectedCount,
+      duration_seconds: parseFloat(duration),
+      created_posts: collectedPosts
+    });
 
     return new Response(
       JSON.stringify({
@@ -207,12 +251,36 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("💥 Unexpected error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+    await updateLog(supabase, logId, "error", { error_message: errorMessage });
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
+
+async function updateLog(
+  supabase: any,
+  logId: string | undefined,
+  status: string,
+  data: Record<string, any>
+) {
+  if (!logId) return;
+  
+  try {
+    await supabase
+      .from("news_collection_logs")
+      .update({
+        status,
+        completed_at: new Date().toISOString(),
+        ...data
+      })
+      .eq("id", logId);
+  } catch (err) {
+    console.error("Failed to update log:", err);
+  }
+}
 
 async function generateArticle(
   apiKey: string,
