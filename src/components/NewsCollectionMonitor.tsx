@@ -47,7 +47,10 @@ import {
   useDeleteConfig,
   useTriggerCollection,
   useCollectionLogsRealtime,
+  useUpdateTimeFilter,
   CollectionLog,
+  TIME_FILTER_OPTIONS,
+  TimeFilterValue,
 } from "@/hooks/useNewsCollection";
 import { format, formatDistanceToNow, subDays, subWeeks, subMonths, startOfDay, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -65,12 +68,14 @@ export default function NewsCollectionMonitor() {
   const toggleConfig = useToggleConfig();
   const deleteConfig = useDeleteConfig();
   const triggerCollection = useTriggerCollection();
+  const updateTimeFilter = useUpdateTimeFilter();
 
   // Enable realtime updates and notifications
   useCollectionLogsRealtime();
 
   const sites = config?.filter((c) => c.type === "site") || [];
   const topics = config?.filter((c) => c.type === "topic") || [];
+  const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
 
   // Filter logs by period
   const filteredLogs = useMemo(() => {
@@ -224,7 +229,7 @@ export default function NewsCollectionMonitor() {
         </div>
 
         <Tabs defaultValue="chart" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="chart">
               <TrendingUp className="h-4 w-4 mr-1" />
               Gráfico
@@ -232,6 +237,10 @@ export default function NewsCollectionMonitor() {
             <TabsTrigger value="logs">Histórico</TabsTrigger>
             <TabsTrigger value="sites">Sites ({sites.length})</TabsTrigger>
             <TabsTrigger value="topics">Tópicos ({topics.length})</TabsTrigger>
+            <TabsTrigger value="settings">
+              <Clock className="h-4 w-4 mr-1" />
+              Config
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chart" className="mt-3">
@@ -459,6 +468,36 @@ export default function NewsCollectionMonitor() {
                 </div>
               )}
             </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-3">
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Intervalo de Tempo para Coleta
+                </h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Define o período máximo de idade das notícias a serem coletadas.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {TIME_FILTER_OPTIONS.map((option) => (
+                    <Button
+                      key={option.value}
+                      variant={(currentTimeFilter || "24h") === option.value ? "default" : "outline"}
+                      className="w-full"
+                      onClick={() => updateTimeFilter.mutate(option.value)}
+                      disabled={updateTimeFilter.isPending}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Configuração atual: <Badge variant="secondary">{TIME_FILTER_OPTIONS.find(o => o.value === (currentTimeFilter || "24h"))?.label}</Badge>
+                </p>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>

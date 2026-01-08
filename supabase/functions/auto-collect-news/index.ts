@@ -134,6 +134,27 @@ serve(async (req) => {
 
     const topics = topicsConfig?.map(t => t.value) || ["últimas notícias Brasil"];
 
+    // Get time filter config
+    const { data: timeFilterConfig } = await supabase
+      .from("news_collection_config")
+      .select("value")
+      .eq("type", "time_filter")
+      .eq("is_active", true)
+      .single();
+
+    // Map time filter values to Firecrawl tbs parameter
+    const timeFilterMap: Record<string, string> = {
+      "1h": "qdr:h",   // last hour
+      "6h": "qdr:h6",  // last 6 hours (using custom syntax if supported, fallback to day)
+      "12h": "qdr:h12", // last 12 hours
+      "24h": "qdr:d",  // last day
+    };
+    
+    const timeFilterValue = timeFilterConfig?.value || "24h";
+    const tbsValue = timeFilterMap[timeFilterValue] || "qdr:d";
+    
+    console.log(`⏰ Time filter: ${timeFilterValue} (tbs: ${tbsValue})`);
+
     // Pick a random topic to search
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
     const siteFilters = sites.map(s => `site:${s}`).join(" OR ");
@@ -147,8 +168,7 @@ serve(async (req) => {
       .update({ search_query: searchQuery })
       .eq("id", logId);
 
-    // Search for news using Firecrawl (last 24 hours only)
-    console.log("⏰ Filtering news from last 24 hours");
+    // Search for news using Firecrawl with configured time filter
     const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
       method: "POST",
       headers: {
@@ -160,7 +180,7 @@ serve(async (req) => {
         limit: 5,
         lang: "pt",
         country: "BR",
-        tbs: "qdr:d", // Filter: last 24 hours (qdr:h=hour, qdr:d=day, qdr:w=week)
+        tbs: tbsValue,
         scrapeOptions: {
           formats: ["markdown"],
           includeTags: ["img", "meta"]
