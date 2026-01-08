@@ -214,5 +214,6 @@ export const categories = [
   "Tecnologia",
   "Entretenimento",
   "Mundo",
-  "Brasil"
+  "Brasil",
+  "Saúde"
 ];
