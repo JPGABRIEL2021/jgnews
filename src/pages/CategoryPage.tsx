@@ -4,18 +4,35 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsFeed from "@/components/NewsFeed";
 import Sidebar from "@/components/Sidebar";
-import { getPostsByCategory, getLatestPosts, categories } from "@/data/mockPosts";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { useCategoryPosts, usePosts, usePostsRealtime } from "@/hooks/usePosts";
+import { categories } from "@/lib/posts";
 
 const CategoryPage = () => {
   const { name } = useParams<{ name: string }>();
+  
+  // Enable realtime updates
+  usePostsRealtime();
   
   // Find the proper category name (case insensitive match)
   const categoryName = categories.find(
     cat => cat.toLowerCase() === name?.toLowerCase()
   ) || name || "";
 
-  const categoryPosts = getPostsByCategory(categoryName);
-  const allPosts = getLatestPosts();
+  const { data: categoryPosts = [], isLoading } = useCategoryPosts(categoryName);
+  const { data: allPosts = [] } = usePosts();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <LoadingSpinner text="Carregando notícias..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

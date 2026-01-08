@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, Menu, X } from "lucide-react";
-import { categories } from "@/data/mockPosts";
+import { categories } from "@/lib/posts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSearch } from "@/hooks/useSearch";
@@ -16,7 +16,7 @@ import {
 
 const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
-  const { query, searchResults, isSearching, handleSearch, clearSearch } = useSearch();
+  const { query, searchResults, isSearching, isLoading, handleSearch, clearSearch } = useSearch();
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Close search when clicking outside
@@ -82,6 +82,13 @@ const Header = () => {
               {searchOpen ? <X size={20} /> : <Search size={20} />}
             </Button>
 
+            {/* Admin Link */}
+            <Link to="/admin">
+              <Button variant="outline" size="sm" className="hidden md:flex">
+                Admin
+              </Button>
+            </Link>
+
             {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild>
@@ -112,6 +119,12 @@ const Header = () => {
                       {category}
                     </Link>
                   ))}
+                  <Link
+                    to="/admin"
+                    className="px-4 py-3 text-base font-medium text-primary hover:bg-secondary rounded-lg transition-colors mt-4 border-t border-news pt-4"
+                  >
+                    Painel Admin
+                  </Link>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -137,7 +150,8 @@ const Header = () => {
                 results={searchResults}
                 query={query}
                 onClose={handleCloseSearch}
-                isVisible={isSearching && query.length >= 2}
+                isVisible={isSearching}
+                isLoading={isLoading}
               />
             </div>
           </div>

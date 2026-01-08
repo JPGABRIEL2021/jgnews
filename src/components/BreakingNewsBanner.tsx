@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, X } from "lucide-react";
-import { Post } from "@/data/mockPosts";
+import { Post } from "@/lib/posts";
 
 interface BreakingNewsBannerProps {
   news: Post | null;

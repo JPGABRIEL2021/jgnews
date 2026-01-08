@@ -1,4 +1,4 @@
-import { Post } from "@/data/mockPosts";
+import { Post } from "@/lib/posts";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import NewsCard from "./NewsCard";
 import LoadingSpinner from "./LoadingSpinner";
@@ -6,12 +6,14 @@ import LoadingSpinner from "./LoadingSpinner";
 interface NewsFeedInfiniteProps {
   posts: Post[];
   title?: string;
+  isLoading?: boolean;
 }
 
-const NewsFeedInfinite = ({ posts, title = "Últimas Notícias" }: NewsFeedInfiniteProps) => {
+const NewsFeedInfinite = ({ posts, title = "Últimas Notícias", isLoading: externalLoading }: NewsFeedInfiniteProps) => {
   const { displayedPosts, hasMore, isLoading, loadMoreRef } = useInfiniteScroll({
-    initialPosts: posts,
+    posts,
     postsPerPage: 5,
+    isLoading: externalLoading,
   });
 
   return (
@@ -21,17 +23,23 @@ const NewsFeedInfinite = ({ posts, title = "Últimas Notícias" }: NewsFeedInfin
         <div className="flex-1 h-px bg-news-border" />
       </div>
       
-      <div className="divide-y divide-news">
-        {displayedPosts.map((post, index) => (
-          <div 
-            key={post.id} 
-            className="animate-fade-in"
-            style={{ animationDelay: `${Math.min(index * 50, 200)}ms` }}
-          >
-            <NewsCard post={post} />
-          </div>
-        ))}
-      </div>
+      {displayedPosts.length === 0 ? (
+        <p className="text-center text-news-muted py-8">
+          Nenhuma notícia disponível no momento.
+        </p>
+      ) : (
+        <div className="divide-y divide-news">
+          {displayedPosts.map((post, index) => (
+            <div 
+              key={post.id} 
+              className="animate-fade-in"
+              style={{ animationDelay: `${Math.min(index * 50, 200)}ms` }}
+            >
+              <NewsCard post={post} />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Load More Trigger */}
       <div ref={loadMoreRef} className="py-4">

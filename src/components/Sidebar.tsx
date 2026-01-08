@@ -1,5 +1,5 @@
 import { TrendingUp } from "lucide-react";
-import { Post } from "@/data/mockPosts";
+import { Post } from "@/lib/posts";
 import NewsCard from "./NewsCard";
 
 interface SidebarProps {
