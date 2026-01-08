@@ -30,10 +30,10 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8">
             <CategoryBadge category={mainPost.category} size="md" clickable={false} />
-            <h1 className="headline-main text-white mt-3 mb-2 group-hover:text-primary-foreground/90 transition-colors">
+            <h1 className="headline-main text-white mt-3 mb-2 group-hover:text-primary-foreground/90 transition-colors line-clamp-4 sm:line-clamp-3 lg:line-clamp-none">
               {mainPost.title}
             </h1>
-            <p className="text-white/80 text-base md:text-lg line-clamp-2 mb-3">
+            <p className="text-white/80 text-base md:text-lg line-clamp-3 sm:line-clamp-2 mb-3 hidden sm:block">
               {mainPost.excerpt}
             </p>
             <TimeAgo date={mainPost.created_at} className="text-white/60 text-sm" />
