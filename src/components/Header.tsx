@@ -155,6 +155,11 @@ const Header = () => {
           </div>
         )}
 
+        {/* Weather Widget (Mobile) */}
+        <div className="flex md:hidden items-center justify-center py-2 border-t border-news">
+          <WeatherWidget />
+        </div>
+
         {/* Category Bar (Desktop) */}
         <div className="hidden md:flex items-center justify-between py-2 border-t border-news">
           <div className="flex items-center gap-1 overflow-x-auto">
@@ -175,8 +180,8 @@ const Header = () => {
             ))}
           </div>
           
-          {/* Weather Widget */}
-          <div className="hidden lg:block shrink-0 ml-4">
+          {/* Weather Widget (Desktop) */}
+          <div className="shrink-0 ml-4">
             <WeatherWidget />
           </div>
         </div>
