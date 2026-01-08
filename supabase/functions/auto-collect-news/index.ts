@@ -96,7 +96,7 @@ serve(async (req) => {
 
   try {
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!FIRECRAWL_API_KEY) {
       console.error("FIRECRAWL_API_KEY not configured");
@@ -107,11 +107,11 @@ serve(async (req) => {
       );
     }
 
-    if (!OPENAI_API_KEY) {
-      console.error("OPENAI_API_KEY not configured");
-      await updateLog(supabase, logId, "error", { error_message: "OpenAI não configurado" });
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured");
+      await updateLog(supabase, logId, "error", { error_message: "Lovable AI não configurado" });
       return new Response(
-        JSON.stringify({ error: "OpenAI não configurado" }),
+        JSON.stringify({ error: "Lovable AI não configurado" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -284,28 +284,59 @@ serve(async (req) => {
       );
     }
 
-    // Get existing post titles to avoid duplicates
+    // Get existing posts for duplicate detection
     const { data: existingPosts } = await supabase
       .from("posts")
-      .select("title")
+      .select("title, excerpt")
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(50);
 
-    const existingTitles = new Set(
-      (existingPosts || []).map((p: any) => p.title.toLowerCase().trim())
-    );
+    const existingTitles = (existingPosts || []).map((p: any) => p.title.toLowerCase().trim());
     
-    // Create list of recent titles for AI context
+    // Create list of recent titles for AI context (shorter list)
     const recentTitlesList = (existingPosts || [])
-      .slice(0, 30)
+      .slice(0, 15)
       .map((p: any) => `• ${p.title}`)
       .join('\n');
 
+    // Extract keywords from existing posts for smarter duplicate detection
+    const extractKeywords = (text: string): Set<string> => {
+      const stopWords = new Set(['de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'nos', 'nas', 'para', 'por', 'com', 'sem', 'que', 'uma', 'um', 'o', 'a', 'os', 'as', 'e', 'é', 'são', 'foi', 'ser', 'ter', 'sobre', 'após', 'até', 'mais', 'menos', 'como', 'quando', 'onde', 'qual', 'quais']);
+      return new Set(
+        text.toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .split(/\s+/)
+          .filter(w => w.length > 3 && !stopWords.has(w))
+      );
+    };
+
+    const existingKeywordSets = existingTitles.map(t => extractKeywords(t));
+
+    // Improved similarity check using Jaccard index
+    const isSimilarToExisting = (newTitle: string, threshold = 0.4): boolean => {
+      const newKeywords = extractKeywords(newTitle);
+      if (newKeywords.size < 3) return false; // Too few keywords to compare
+      
+      for (const existingSet of existingKeywordSets) {
+        if (existingSet.size < 3) continue;
+        
+        const intersection = new Set([...newKeywords].filter(x => existingSet.has(x)));
+        const union = new Set([...newKeywords, ...existingSet]);
+        const similarity = intersection.size / union.size;
+        
+        if (similarity >= threshold) {
+          return true;
+        }
+      }
+      return false;
+    };
+
     let collectedCount = 0;
     const collectedPosts: any[] = [];
+    let skippedDuplicates = 0;
 
-    // Process each valid news result (limit to 3)
-    for (const item of results.slice(0, 3)) {
+    // Process each valid news result (increased limit to 5)
+    for (const item of results.slice(0, 5)) {
       try {
         const title = item.title || item.metadata?.title;
         const description = item.description || item.metadata?.description || "";
@@ -315,7 +346,6 @@ serve(async (req) => {
         // Extract original image from metadata
         const ogImage = item.metadata?.ogImage || item.metadata?.["og:image"];
         const twitterImage = item.metadata?.["twitter:image"];
-        const sourceImage = item.metadata?.sourceURL ? `${new URL(item.metadata.sourceURL).origin}/favicon.ico` : null;
         
         // Try to extract image from markdown content
         const markdownImageMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s\)]+\.(jpg|jpeg|png|webp|gif)[^\s\)]*)\)/i);
@@ -329,19 +359,27 @@ serve(async (req) => {
           continue;
         }
 
-        // Check for duplicates
+        // Check for exact duplicates first
         const normalizedTitle = title.toLowerCase().trim();
-        if (existingTitles.has(normalizedTitle)) {
-          console.log(`⏭️ Skipping duplicate: ${title.slice(0, 50)}...`);
+        if (existingTitles.includes(normalizedTitle)) {
+          console.log(`⏭️ Exact duplicate: ${title.slice(0, 50)}...`);
+          skippedDuplicates++;
+          continue;
+        }
+
+        // Check for semantic similarity (looser threshold)
+        if (isSimilarToExisting(title, 0.5)) {
+          console.log(`⏭️ Similar content detected: ${title.slice(0, 50)}...`);
+          skippedDuplicates++;
           continue;
         }
 
         console.log(`🤖 Generating article from: ${title.slice(0, 60)}...`);
         console.log(`🖼️ Original image found: ${originalImage ? originalImage.slice(0, 80) + '...' : 'None'}`);
 
-        // Generate article using AI
+        // Generate article using Lovable AI
         const article = await generateArticle(
-          OPENAI_API_KEY,
+          LOVABLE_API_KEY,
           title,
           description,
           markdown,
@@ -390,7 +428,8 @@ serve(async (req) => {
           category: post.category,
           is_breaking: post.is_breaking
         });
-        existingTitles.add(normalizedTitle);
+        existingTitles.push(normalizedTitle);
+        existingKeywordSets.push(extractKeywords(normalizedTitle));
 
         // Small delay between API calls
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -401,21 +440,23 @@ serve(async (req) => {
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`✨ Completed! Collected ${collectedCount} articles from ${results.length} valid (${rawResults.length} total) in ${duration}s`);
+    console.log(`✨ Completed! Collected ${collectedCount} articles, skipped ${skippedDuplicates} duplicates, from ${results.length} valid (${rawResults.length} total) in ${duration}s`);
 
     // Update log with success
     await updateLog(supabase, logId, "success", {
       articles_found: rawResults.length,
       articles_collected: collectedCount,
       duration_seconds: parseFloat(duration),
-      created_posts: collectedPosts
+      created_posts: collectedPosts,
+      error_message: skippedDuplicates > 0 ? `${skippedDuplicates} artigos similares ignorados` : null
     });
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Coletadas ${collectedCount} notícias`,
+        message: `Coletadas ${collectedCount} notícias (${skippedDuplicates} similares ignoradas)`,
         collected: collectedCount,
+        skippedDuplicates,
         posts: collectedPosts,
         duration: `${duration}s`
       }),
@@ -516,14 +557,14 @@ FONTE: ${sourceUrl}
 ${recentTitles || 'Nenhuma notícia anterior'}`;
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
@@ -534,7 +575,8 @@ ${recentTitles || 'Nenhuma notícia anterior'}`;
     });
 
     if (!response.ok) {
-      console.error("OpenAI API error:", response.status);
+      const errorText = await response.text();
+      console.error("Lovable AI error:", response.status, errorText);
       return null;
     }
 
