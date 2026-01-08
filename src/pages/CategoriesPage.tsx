@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -79,6 +80,16 @@ const CategoryCard = ({ category, index }: { category: string; index: number }) 
 const CategoriesPage = () => {
   // Remove duplicates from categories
   const uniqueCategories = [...new Set(categories)];
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -90,13 +101,33 @@ const CategoriesPage = () => {
       <Header />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-b from-primary/5 to-transparent">
-          <div className="container py-12">
-            <h1 className="text-4xl md:text-5xl font-black text-foreground text-center">
+        {/* Hero Section with Parallax */}
+        <div className="relative overflow-hidden bg-gradient-to-b from-primary/10 via-primary/5 to-transparent">
+          {/* Parallax Background Elements */}
+          <div 
+            className="absolute inset-0 opacity-30"
+            style={{ transform: `translateY(${scrollY * 0.3}px)` }}
+          >
+            <div className="absolute top-10 left-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
+            <div className="absolute top-20 right-20 w-48 h-48 bg-accent/20 rounded-full blur-3xl" />
+            <div className="absolute bottom-10 left-1/3 w-40 h-40 bg-secondary/30 rounded-full blur-3xl" />
+          </div>
+          
+          {/* Content with slower parallax */}
+          <div 
+            className="container py-16 relative z-10"
+            style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+          >
+            <h1 
+              className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground text-center"
+              style={{ transform: `translateY(${scrollY * -0.05}px)` }}
+            >
               Todas as Categorias
             </h1>
-            <p className="text-lg text-muted-foreground text-center mt-4 max-w-2xl mx-auto">
+            <p 
+              className="text-lg text-muted-foreground text-center mt-4 max-w-2xl mx-auto"
+              style={{ transform: `translateY(${scrollY * -0.02}px)` }}
+            >
               Explore as notícias organizadas por tema. Escolha uma categoria para ver todas as matérias relacionadas.
             </p>
           </div>
