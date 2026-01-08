@@ -2,3 +2,6 @@ project_id = "ixfgtcxthdjjftsltlrk"
 
 [functions.generate-news]
 verify_jwt = false
+
+[functions.generate-news-stream]
+verify_jwt = false

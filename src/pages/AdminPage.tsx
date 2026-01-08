@@ -9,14 +9,12 @@ import {
   ArrowLeft,
   Search,
   MoreHorizontal,
-  LogOut,
-  Sparkles,
-  Loader2
+  LogOut
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import AINewsGenerator from "@/components/AINewsGenerator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -53,31 +51,16 @@ import {
   usePostsRealtime 
 } from "@/hooks/usePosts";
 import { useAuth } from "@/hooks/useAuth";
-import { categories, Post } from "@/lib/posts";
+import { Post } from "@/lib/posts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useQueryClient } from "@tanstack/react-query";
 
 const AdminPage = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
-
-  // AI Generator state
-  const [aiTopic, setAiTopic] = useState("");
-  const [aiCategory, setAiCategory] = useState("Geral");
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const { user, signOut } = useAuth();
 
@@ -123,41 +106,6 @@ const AdminPage = () => {
     }
     toast.success("Você saiu do sistema");
     navigate("/");
-  };
-
-  const handleGenerateWithAI = async () => {
-    if (!aiTopic.trim()) {
-      toast.error("Digite um tópico para gerar a notícia");
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-news", {
-        body: { topic: aiTopic, category: aiCategory },
-      });
-
-      if (error) {
-        console.error("Edge function error:", error);
-        toast.error(error.message || "Erro ao gerar notícia");
-        return;
-      }
-
-      if (data?.error) {
-        toast.error(data.error);
-        return;
-      }
-
-      toast.success("Notícia gerada com sucesso!");
-      setAiTopic("");
-      // Refresh posts list
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    } catch (err) {
-      console.error("Generate error:", err);
-      toast.error("Erro ao conectar com o serviço de IA");
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   return (
@@ -210,58 +158,8 @@ const AdminPage = () => {
           />
         </div>
 
-        {/* AI News Generator */}
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-6 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="text-primary" size={24} />
-            <h2 className="text-xl font-bold text-news-primary">Gerador de Notícias com IA</h2>
-          </div>
-          <p className="text-news-muted text-sm mb-4">
-            Digite um tópico e a IA irá gerar uma notícia completa automaticamente.
-          </p>
-          <div className="grid md:grid-cols-[1fr,200px,auto] gap-4 items-end">
-            <div>
-              <label className="text-sm font-medium text-news-primary mb-2 block">Tópico</label>
-              <Textarea
-                placeholder="Ex: Preços do café no Brasil, Nova tecnologia de energia solar..."
-                value={aiTopic}
-                onChange={(e) => setAiTopic(e.target.value)}
-                className="min-h-[80px] resize-none"
-                disabled={isGenerating}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-news-primary mb-2 block">Categoria</label>
-              <Select value={aiCategory} onValueChange={setAiCategory} disabled={isGenerating}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button 
-              onClick={handleGenerateWithAI} 
-              disabled={isGenerating || !aiTopic.trim()}
-              className="gap-2 h-10"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Gerando...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={18} />
-                  Gerar com IA
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
+        {/* AI News Generator with Streaming */}
+        <AINewsGenerator />
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
