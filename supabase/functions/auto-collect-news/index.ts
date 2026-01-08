@@ -147,7 +147,8 @@ serve(async (req) => {
       .update({ search_query: searchQuery })
       .eq("id", logId);
 
-    // Search for news using Firecrawl
+    // Search for news using Firecrawl (last 24 hours only)
+    console.log("⏰ Filtering news from last 24 hours");
     const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
       method: "POST",
       headers: {
@@ -159,7 +160,7 @@ serve(async (req) => {
         limit: 5,
         lang: "pt",
         country: "BR",
-        tbs: "qdr:d",
+        tbs: "qdr:d", // Filter: last 24 hours (qdr:h=hour, qdr:d=day, qdr:w=week)
         scrapeOptions: {
           formats: ["markdown"],
           includeTags: ["img", "meta"]
