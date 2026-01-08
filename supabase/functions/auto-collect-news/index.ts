@@ -316,6 +316,10 @@ REGRAS:
 • Linguagem clara e acessível
 • Parágrafos curtos
 • Sem opinião ou sensacionalismo
+• NÃO INCLUA NENHUM LINK ou URL no texto
+• NÃO mencione fontes externas ou sites de onde a notícia foi obtida
+• NÃO adicione seções de "Informações relevantes", "Saiba mais", "Leia também" ou similares
+• Apenas o conteúdo da notícia, sem referências externas
 
 FORMATO DE RESPOSTA:
 ---URGENTE---
@@ -331,7 +335,7 @@ FORMATO DE RESPOSTA:
 [Nome fictício de repórter]
 
 ---CONTEUDO---
-[Conteúdo em HTML com <p>, <h3>, <ul><li>]`;
+[Conteúdo em HTML com <p>, <h3>, <ul><li> - SEM LINKS]`;
 
   const userPrompt = `TÍTULO ORIGINAL: ${originalTitle}
 
@@ -395,7 +399,13 @@ function parseGeneratedContent(content: string): {
   const title = titleMatch?.[1]?.trim() || "Notícia sem título";
   const excerpt = subtitleMatch?.[1]?.trim() || "";
   const author = authorMatch?.[1]?.trim() || "Redação IA";
-  const htmlContent = contentMatch?.[1]?.trim() || content;
+  let htmlContent = contentMatch?.[1]?.trim() || content;
+  
+  // Remove any remaining links from the content
+  htmlContent = htmlContent
+    .replace(/<a[^>]*>([^<]*)<\/a>/gi, '$1') // Remove <a> tags keeping text
+    .replace(/https?:\/\/[^\s<>"']+/gi, '') // Remove raw URLs
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // Remove markdown links
 
   const slug = title
     .toLowerCase()
