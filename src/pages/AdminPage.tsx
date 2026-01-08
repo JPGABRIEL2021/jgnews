@@ -96,7 +96,12 @@ const AdminPage = () => {
   };
 
   const handleToggleBreaking = (post: Post) => {
-    toggleBreaking.mutate({ id: post.id, isBreaking: !post.is_breaking });
+    toggleBreaking.mutate({ 
+      id: post.id, 
+      isBreaking: !post.is_breaking,
+      postTitle: post.title,
+      postSlug: post.slug,
+    });
   };
 
   const handleLogout = async () => {
