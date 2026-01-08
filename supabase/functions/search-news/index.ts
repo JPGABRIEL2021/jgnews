@@ -21,7 +21,8 @@ const corsHeaders = {
 const NEWS_SITES = [
   "g1.globo.com",
   "folha.uol.com.br",
-  "estadao.com.br"
+  "estadao.com.br",
+  "canaltech.com.br"
 ];
 
 // Auth helper function
