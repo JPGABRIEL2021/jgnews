@@ -52,6 +52,7 @@ const PostEditorPage = () => {
     author: "",
     is_featured: false,
     is_breaking: false,
+    is_sensitive: false,
     scheduled_at: null,
   });
 
@@ -107,6 +108,7 @@ const PostEditorPage = () => {
         author: existingPost.author || "",
         is_featured: existingPost.is_featured,
         is_breaking: existingPost.is_breaking,
+        is_sensitive: existingPost.is_sensitive || false,
         scheduled_at: existingPost.scheduled_at,
       });
     }
@@ -346,6 +348,17 @@ const PostEditorPage = () => {
               />
               <Label htmlFor="is_breaking" className="cursor-pointer">
                 Marcar como Urgente (Breaking News)
+              </Label>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Switch
+                id="is_sensitive"
+                checked={formData.is_sensitive}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_sensitive: checked }))}
+              />
+              <Label htmlFor="is_sensitive" className="cursor-pointer text-amber-600 dark:text-amber-400">
+                Imagem Sensível (blur para AdSense)
               </Label>
             </div>
           </div>

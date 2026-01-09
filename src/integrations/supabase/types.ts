@@ -121,6 +121,7 @@ export type Database = {
           id: string
           is_breaking: boolean
           is_featured: boolean
+          is_sensitive: boolean
           scheduled_at: string | null
           slug: string
           title: string
@@ -136,6 +137,7 @@ export type Database = {
           id?: string
           is_breaking?: boolean
           is_featured?: boolean
+          is_sensitive?: boolean
           scheduled_at?: string | null
           slug: string
           title: string
@@ -151,6 +153,7 @@ export type Database = {
           id?: string
           is_breaking?: boolean
           is_featured?: boolean
+          is_sensitive?: boolean
           scheduled_at?: string | null
           slug?: string
           title?: string
