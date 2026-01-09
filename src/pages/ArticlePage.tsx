@@ -128,7 +128,7 @@ const ArticlePage = () => {
           </header>
 
           {/* Featured Image - Hero image with priority loading for LCP */}
-          <figure className="mb-3">
+          <figure className="mb-2">
             <SensitiveImage
               src={post.cover_image}
               alt={`Imagem: ${post.title}`}
@@ -138,13 +138,13 @@ const ArticlePage = () => {
               className="w-full h-full object-cover"
               fetchPriority="high"
             />
-            <figcaption className="text-sm text-news-muted mt-2 text-center">
+            <figcaption className="text-sm text-news-muted mt-1.5 text-center">
               {post.title}
             </figcaption>
           </figure>
 
           {/* Share Buttons */}
-          <div className="mb-2">
+          <div className="mb-1.5">
             <ShareButtons
               title={post.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
@@ -153,7 +153,7 @@ const ArticlePage = () => {
           </div>
 
           {/* Ad Banner - Before Content */}
-          <div className="mb-3">
+          <div className="mb-2">
             <AdBanner format="horizontal" className="min-h-[50px] md:min-h-[90px] bg-muted/30 rounded-lg" />
           </div>
 
