@@ -81,12 +81,15 @@ export default function NewsCollectionMonitor() {
   const sites = config?.filter((c) => c.type === "site") || [];
   const topics = config?.filter((c) => c.type === "topic") || [];
   const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
-  const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
   const currentScheduleInterval = config?.find((c) => c.type === "schedule_interval")?.value as ScheduleIntervalValue | undefined;
 
-  // Auto-run logic (Client-side watchdog) - Ensures collection occurs even if backend cron fails
+  // Auto-run logic (Client-side watchdog)
   useEffect(() => {
-    if (!currentScheduleInterval || !lastCollection) return;
+    // If no config or logs not loaded yet, wait
+    if (!currentScheduleInterval || logsLoading) return;
+
+    // Use absolute latest log (regardless of filter), or null if history is empty
+    const latestLog = allLogs && allLogs.length > 0 ? allLogs[0] : null;
 
     // Parse interval
     const intervalMap: Record<string, number> = {
@@ -98,22 +101,31 @@ export default function NewsCollectionMonitor() {
 
     const intervalMs = intervalMap[currentScheduleInterval] || 60 * 60 * 1000;
 
-    // Check every minute
-    const checkTimer = setInterval(() => {
-      // Don't trigger if already running
-      if (triggerCollection.isPending || lastCollection.status === 'running') return;
+    const checkAndTrigger = () => {
+      // Don't trigger if already running (optimistic check)
+      if (triggerCollection.isPending) return;
+      if (latestLog && latestLog.status === 'running') return;
 
-      const timeSinceLast = Date.now() - new Date(lastCollection.started_at).getTime();
+      const now = Date.now();
+      const lastRunTime = latestLog ? new Date(latestLog.started_at).getTime() : 0;
+      const timeSinceLast = now - lastRunTime;
 
-      // If time passed + 2 minutes buffer (to let backend try first), trigger it
+      // If time passed + 2 minutes buffer (to avoid race conditions), trigger it
+      // Note: If lastRunTime is 0 (never ran), this is always true
       if (timeSinceLast > (intervalMs + 2 * 60 * 1000)) {
-        console.log("⏰ Watchdog: Triggering auto-collection (backend missed schedule)");
+        console.log(`⏰ Watchdog: Triggering auto-collection. Last run: ${latestLog ? formatDistanceToNow(new Date(latestLog.started_at)) : 'Never'}`);
         triggerCollection.mutate();
       }
-    }, 60000); // Check every minute
+    };
+
+    // Check immediately on mount/update
+    checkAndTrigger();
+
+    // Then check every minute
+    const checkTimer = setInterval(checkAndTrigger, 60000);
 
     return () => clearInterval(checkTimer);
-  }, [currentScheduleInterval, lastCollection, triggerCollection]);
+  }, [currentScheduleInterval, allLogs, logsLoading, triggerCollection]);
 
   // Filter logs by period
   const filteredLogs = useMemo(() => {
