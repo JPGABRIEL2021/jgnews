@@ -8,6 +8,7 @@ import ShareButtons from "@/components/ShareButtons";
 import NewsCard from "@/components/NewsCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SEO from "@/components/SEO";
+import OptimizedImage from "@/components/OptimizedImage";
 import { usePost, usePosts, usePostsRealtime } from "@/hooks/usePosts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -72,6 +73,7 @@ const ArticlePage = () => {
           category: post.category,
         }}
         keywords={`${post.category}, notícias, ${post.title.split(" ").slice(0, 5).join(", ")}`}
+        preloadImage={true}
       />
       <Header />
 
@@ -115,17 +117,16 @@ const ArticlePage = () => {
             </div>
           </header>
 
-          {/* Featured Image */}
+          {/* Featured Image - Hero image with priority loading for LCP */}
           <figure className="mb-8">
-            <div className="relative w-full overflow-hidden rounded-lg shadow-lg" style={{ aspectRatio: '16/9' }}>
-              <img
-                src={post.cover_image}
-                alt={`Imagem: ${post.title}`}
-                loading="lazy"
-                decoding="async"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <OptimizedImage
+              src={post.cover_image}
+              alt={`Imagem: ${post.title}`}
+              aspectRatio="16/9"
+              containerClassName="rounded-lg shadow-lg"
+              className="w-full h-full object-cover"
+              fetchPriority="high"
+            />
             <figcaption className="text-sm text-news-muted mt-2 text-center">
               {post.title}
             </figcaption>
