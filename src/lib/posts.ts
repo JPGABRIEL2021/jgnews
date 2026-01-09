@@ -217,5 +217,4 @@ export const categories = [
   "Mundo",
   "Brasil",
   "Saúde",
-  "Esportes"
 ];
