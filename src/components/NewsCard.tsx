@@ -3,6 +3,7 @@ import { Post } from "@/lib/posts";
 import CategoryBadge from "./CategoryBadge";
 import TimeAgo from "./TimeAgo";
 import OptimizedImage from "./OptimizedImage";
+import { useLinkPrefetch } from "@/hooks/usePrefetch";
 
 interface NewsCardProps {
   post: Post;
@@ -10,11 +11,14 @@ interface NewsCardProps {
 }
 
 const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
+  const { handleMouseEnter } = useLinkPrefetch();
   if (variant === "compact") {
     return (
       <Link
         to={`/post/${post.slug}`}
         className="group flex gap-3 py-3 border-b border-news last:border-b-0"
+        onMouseEnter={() => handleMouseEnter(post.slug)}
+        onFocus={() => handleMouseEnter(post.slug)}
       >
         <OptimizedImage
           src={post.cover_image}
@@ -37,6 +41,8 @@ const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
     <Link
       to={`/post/${post.slug}`}
       className="group flex gap-4 py-4 border-b border-news news-card-hover animate-fade-in"
+      onMouseEnter={() => handleMouseEnter(post.slug)}
+      onFocus={() => handleMouseEnter(post.slug)}
     >
       {/* Thumbnail */}
       <OptimizedImage
