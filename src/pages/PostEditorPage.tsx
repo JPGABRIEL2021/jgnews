@@ -60,6 +60,32 @@ const PostEditorPage = () => {
   const [slugError, setSlugError] = useState<string | null>(null);
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
 
+  // Generate unique slug by checking for conflicts
+  const generateUniqueSlug = async (baseSlug: string): Promise<string> => {
+    let slug = baseSlug;
+    let counter = 1;
+    
+    while (true) {
+      const { data } = await supabase
+        .from("posts")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      
+      if (!data) {
+        return slug;
+      }
+      
+      // If editing and found the current post, it's ok
+      if (isEditing && existingPost && data.id === existingPost.id) {
+        return slug;
+      }
+      
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  };
+
   // Check if slug is unique
   const checkSlugUnique = async (slugToCheck: string): Promise<boolean> => {
     if (!slugToCheck.trim()) return true;
@@ -152,18 +178,19 @@ const PostEditorPage = () => {
       return;
     }
 
-    // Check slug uniqueness before submitting
-    const isSlugUnique = await checkSlugUnique(formData.slug);
-    if (!isSlugUnique) {
-      toast.error("Este slug já está em uso. Escolha outro.");
-      return;
-    }
-
     try {
       if (isEditing && existingPost) {
+        // Check slug uniqueness for updates
+        const isSlugUnique = await checkSlugUnique(formData.slug);
+        if (!isSlugUnique) {
+          toast.error("Este slug já está em uso. Escolha outro.");
+          return;
+        }
         await updatePost.mutateAsync({ id: existingPost.id, updates: formData });
       } else {
-        await createPost.mutateAsync(formData);
+        // Generate a unique slug for new posts
+        const uniqueSlug = await generateUniqueSlug(formData.slug);
+        await createPost.mutateAsync({ ...formData, slug: uniqueSlug });
       }
       navigate("/admin");
     } catch (error) {
