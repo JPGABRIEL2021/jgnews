@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Send, Mail, Users, TestTube, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import RichTextEditor from "@/components/RichTextEditor";
 
 const NewsletterAdmin = () => {
   const [subject, setSubject] = useState("");
@@ -148,18 +148,12 @@ const NewsletterAdmin = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Conteúdo (HTML)</Label>
-                <Textarea
-                  id="content"
-                  placeholder="<h2>Título</h2><p>Seu conteúdo aqui...</p>"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={10}
-                  className="font-mono text-sm"
+                <Label>Conteúdo</Label>
+                <RichTextEditor
+                  content={content}
+                  onChange={setContent}
+                  placeholder="Escreva o conteúdo da newsletter..."
                 />
-                <p className="text-xs text-muted-foreground">
-                  Você pode usar HTML para formatar o conteúdo: &lt;h2&gt;, &lt;p&gt;, &lt;a href=""&gt;, &lt;strong&gt;, &lt;em&gt;, etc.
-                </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
