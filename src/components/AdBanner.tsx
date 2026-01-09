@@ -13,18 +13,18 @@ declare global {
   }
 }
 
-const AdBanner = ({ 
-  slot = "", 
-  format = "auto", 
+const AdBanner = ({
+  slot = "",
+  format = "auto",
   responsive = true,
-  className = "" 
+  className = ""
 }: AdBannerProps) => {
   const adRef = useRef<HTMLModElement>(null);
   const isAdLoaded = useRef(false);
 
   useEffect(() => {
     if (isAdLoaded.current) return;
-    
+
     try {
       if (typeof window !== "undefined" && adRef.current) {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -36,7 +36,8 @@ const AdBanner = ({
   }, []);
 
   return (
-    <div className={`ad-container overflow-hidden ${className}`}>
+    <div className={`ad-container overflow-hidden flex flex-col items-center ${className}`}>
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 mb-1 select-none">Publicidade</span>
       <ins
         ref={adRef}
         className="adsbygoogle"

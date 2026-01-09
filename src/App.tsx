@@ -19,6 +19,8 @@ import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RedirectByIdToSlug from "./components/RedirectByIdToSlug";
+import CookieConsent from "./components/CookieConsent";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -85,6 +87,7 @@ const App = () => (
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieConsent />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
