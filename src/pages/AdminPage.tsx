@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  Star, 
-  AlertTriangle, 
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Star,
+  AlertTriangle,
   ArrowLeft,
   Search,
   MoreHorizontal,
-  LogOut
+  LogOut,
+  Moon,
+  Sun
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -45,12 +47,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { 
-  usePosts, 
-  useDeletePost, 
-  useToggleFeatured, 
+import {
+  usePosts,
+  useDeletePost,
+  useToggleFeatured,
   useToggleBreaking,
-  usePostsRealtime 
+  usePostsRealtime
 } from "@/hooks/usePosts";
 import { useAuth } from "@/hooks/useAuth";
 import { Post } from "@/lib/posts";
@@ -63,6 +65,21 @@ const AdminPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+
+  // Theme state
+  const [isDarkMode, setIsDarkMode] = useState(() =>
+    document.documentElement.classList.contains("dark")
+  );
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    if (newTheme) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   const { user, signOut } = useAuth();
 
@@ -97,8 +114,8 @@ const AdminPage = () => {
   };
 
   const handleToggleBreaking = (post: Post) => {
-    toggleBreaking.mutate({ 
-      id: post.id, 
+    toggleBreaking.mutate({
+      id: post.id,
       isBreaking: !post.is_breaking,
       postTitle: post.title,
       postSlug: post.slug,
@@ -148,6 +165,9 @@ const AdminPage = () => {
                 <span className="hidden sm:inline">Nova Notícia</span>
               </Button>
             </Link>
+            <Button variant="outline" size="icon" onClick={toggleTheme} title={isDarkMode ? "Modo Claro" : "Modo Escuro"}>
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </Button>
             <Button variant="outline" size="icon" onClick={handleLogout} title="Sair">
               <LogOut size={18} />
             </Button>
@@ -295,7 +315,7 @@ const AdminPage = () => {
                             {post.is_breaking ? "Remover urgente" : "Marcar como urgente"}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDelete(post)}
                             className="text-destructive focus:text-destructive"
                           >
@@ -326,7 +346,7 @@ const AdminPage = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
