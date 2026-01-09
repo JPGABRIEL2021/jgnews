@@ -14,6 +14,7 @@ interface SEOProps {
     category?: string;
   };
   noindex?: boolean;
+  preloadImage?: boolean; // Preload hero image for LCP optimization
 }
 
 const SITE_NAME = "JG News";
@@ -30,6 +31,7 @@ const SEO = ({
   type = "website",
   article,
   noindex = false,
+  preloadImage = false,
 }: SEOProps) => {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - Portal de Notícias`;
   const fullUrl = url || (typeof window !== "undefined" ? window.location.href : "");
@@ -101,8 +103,20 @@ const SEO = ({
       }
     : null;
 
+  // Preload hero image URL for LCP optimization
+  const preloadImageUrl = preloadImage && image !== DEFAULT_IMAGE ? image : null;
+
   return (
     <Helmet>
+      {/* Preload hero image for LCP optimization */}
+      {preloadImageUrl && (
+        <link 
+          rel="preload" 
+          as="image" 
+          href={preloadImageUrl}
+        />
+      )}
+      
       {/* Basic Meta Tags */}
       <title>{fullTitle}</title>
       <meta name="description" content={truncatedDescription} />

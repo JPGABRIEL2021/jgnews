@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, ImgHTMLAttributes } from "react";
+import { useState, useRef, useEffect, ImgHTMLAttributes, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 interface OptimizedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
@@ -7,6 +7,8 @@ interface OptimizedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   fallbackSrc?: string;
   aspectRatio?: string;
   containerClassName?: string;
+  width?: number;
+  quality?: number;
 }
 
 const OptimizedImage = ({
@@ -21,7 +23,13 @@ const OptimizedImage = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Use the original source directly - browser handles format negotiation
+  const imageSrc = useMemo(() => {
+    if (hasError) return fallbackSrc;
+    return src;
+  }, [src, hasError, fallbackSrc]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -37,8 +45,8 @@ const OptimizedImage = ({
       }
     );
 
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
 
     return () => observer.disconnect();
@@ -49,18 +57,18 @@ const OptimizedImage = ({
   };
 
   const handleError = () => {
-    setHasError(true);
-    setIsLoaded(true);
+    if (!hasError) {
+      setHasError(true);
+      setIsLoaded(true);
+    }
   };
-
-  const imageSrc = hasError ? fallbackSrc : src;
 
   // Default aspect ratio for CLS optimization
   const defaultAspectRatio = aspectRatio || "16/9";
 
   return (
     <div
-      ref={imgRef}
+      ref={containerRef}
       className={cn(
         "relative overflow-hidden bg-muted",
         containerClassName
@@ -83,6 +91,8 @@ const OptimizedImage = ({
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
+          // Add fetchpriority for LCP images (when they're visible immediately)
+          fetchPriority={props.fetchPriority}
           className={cn(
             "transition-opacity duration-500 ease-out w-full h-full object-cover",
             isLoaded ? "opacity-100" : "opacity-0",
