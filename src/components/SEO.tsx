@@ -28,6 +28,7 @@ const DEFAULT_DESCRIPTION = "Portal de notícias com as últimas atualizações 
 const DEFAULT_IMAGE = "https://jgnews.com.br/pwa-512x512.png";
 const SITE_URL = "https://jgnews.com.br";
 const LOGO_URL = `${SITE_URL}/pwa-512x512.png`;
+const TWITTER_HANDLE = "@jgnews";
 
 const SEO = ({
   title,
@@ -44,6 +45,11 @@ const SEO = ({
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - Portal de Notícias`;
   const currentUrl = typeof window !== "undefined" ? window.location.href : SITE_URL;
   const fullUrl = url || currentUrl;
+  
+  // Ensure canonical URL is clean (no trailing slashes except for root, no query params)
+  const cleanUrl = fullUrl.split("?")[0].replace(/\/$/, "") || SITE_URL;
+  const canonicalUrl = cleanUrl === SITE_URL ? SITE_URL + "/" : cleanUrl;
+  
   const fullImage = image.startsWith("http") ? image : `${SITE_URL}${image}`;
 
   // Truncate description to 160 chars for SEO
@@ -156,7 +162,7 @@ const SEO = ({
       <meta name="description" content={truncatedDescription} />
       <meta name="keywords" content={keywords} />
       <meta name="author" content={article?.author || "JG News"} />
-      <link rel="canonical" href={fullUrl} />
+      <link rel="canonical" href={canonicalUrl} />
       
       {noindex && <meta name="robots" content="noindex, nofollow" />}
       
@@ -169,7 +175,8 @@ const SEO = ({
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:image:type" content="image/jpeg" />
-      <meta property="og:url" content={fullUrl} />
+      <meta property="og:image:alt" content={title || SITE_NAME} />
+      <meta property="og:url" content={canonicalUrl} />
       <meta property="og:locale" content="pt_BR" />
       
       {/* Article specific OG tags */}
@@ -185,13 +192,19 @@ const SEO = ({
       {article?.category && (
         <meta property="article:section" content={article.category} />
       )}
+      {article && (
+        <meta property="article:publisher" content={SITE_URL} />
+      )}
       
       {/* Twitter Card - unique per page */}
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content={TWITTER_HANDLE} />
+      <meta name="twitter:creator" content={TWITTER_HANDLE} />
       <meta name="twitter:title" content={title || SITE_NAME} />
       <meta name="twitter:description" content={truncatedDescription} />
       <meta name="twitter:image" content={fullImage} />
       <meta name="twitter:image:alt" content={title || SITE_NAME} />
+      <meta name="twitter:domain" content="jgnews.com.br" />
       
       {/* Schema.org JSON-LD - Organization */}
       <script type="application/ld+json">
