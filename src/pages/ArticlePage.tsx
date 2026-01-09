@@ -132,6 +132,7 @@ const ArticlePage = () => {
             <ShareButtons
               title={post.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
+              slug={post.slug}
             />
           </div>
 
@@ -151,6 +152,7 @@ const ArticlePage = () => {
             <ShareButtons
               title={post.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
+              slug={post.slug}
             />
           </div>
         </article>
