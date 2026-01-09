@@ -11,6 +11,7 @@ export interface Post {
   author: string | null;
   is_featured: boolean;
   is_breaking: boolean;
+  is_sensitive: boolean;
   scheduled_at: string | null;
   created_at: string;
   updated_at: string;

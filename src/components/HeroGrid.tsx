@@ -1,16 +1,44 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Eye } from "lucide-react";
 import { Post } from "@/lib/posts";
 import CategoryBadge from "./CategoryBadge";
 import TimeAgo from "./TimeAgo";
 import OptimizedImage from "./OptimizedImage";
 import { useLinkPrefetch } from "@/hooks/usePrefetch";
+import { Button } from "@/components/ui/button";
 
 interface HeroGridProps {
   posts: Post[];
 }
 
+const SensitiveOverlay = ({ onReveal }: { onReveal: () => void }) => (
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center z-10">
+    <div className="text-center text-white px-4 mb-2">
+      <p className="text-sm font-medium">Conteúdo sensível</p>
+    </div>
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onReveal();
+      }}
+    >
+      <Eye size={14} className="mr-1" />
+      Ver imagem
+    </Button>
+  </div>
+);
+
 const HeroGrid = ({ posts }: HeroGridProps) => {
   const { handleMouseEnter } = useLinkPrefetch();
+  const [revealedPosts, setRevealedPosts] = useState<Set<string>>(new Set());
+
+  const revealPost = (postId: string) => {
+    setRevealedPosts(prev => new Set(prev).add(postId));
+  };
   
   if (posts.length < 3) return null;
 
@@ -30,9 +58,12 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
             src={mainPost.cover_image}
             alt={`Imagem: ${mainPost.title}`}
             aspectRatio="16/10"
-            containerClassName="aspect-[16/9] lg:aspect-[16/10]"
+            containerClassName={`aspect-[16/9] lg:aspect-[16/10] ${mainPost.is_sensitive && !revealedPosts.has(mainPost.id) ? 'blur-xl scale-110' : ''}`}
             className="w-full h-full object-cover news-card-image"
           />
+          {mainPost.is_sensitive && !revealedPosts.has(mainPost.id) && (
+            <SensitiveOverlay onReveal={() => revealPost(mainPost.id)} />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8">
             <CategoryBadge category={mainPost.category} size="md" clickable={false} />
@@ -61,9 +92,12 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
                 src={post.cover_image}
                 alt={`Imagem: ${post.title}`}
                 aspectRatio="16/9"
-                containerClassName="h-full min-h-[200px]"
+                containerClassName={`h-full min-h-[200px] ${post.is_sensitive && !revealedPosts.has(post.id) ? 'blur-xl scale-110' : ''}`}
                 className="w-full h-full object-cover news-card-image"
               />
+              {post.is_sensitive && !revealedPosts.has(post.id) && (
+                <SensitiveOverlay onReveal={() => revealPost(post.id)} />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <CategoryBadge category={post.category} size="sm" clickable={false} />

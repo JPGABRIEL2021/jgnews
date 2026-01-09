@@ -8,7 +8,7 @@ import ShareButtons from "@/components/ShareButtons";
 import NewsCard from "@/components/NewsCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SEO from "@/components/SEO";
-import OptimizedImage from "@/components/OptimizedImage";
+import SensitiveImage from "@/components/SensitiveImage";
 import { usePost, usePosts, usePostsRealtime } from "@/hooks/usePosts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -127,9 +127,10 @@ const ArticlePage = () => {
 
           {/* Featured Image - Hero image with priority loading for LCP */}
           <figure className="mb-8">
-            <OptimizedImage
+            <SensitiveImage
               src={post.cover_image}
               alt={`Imagem: ${post.title}`}
+              isSensitive={post.is_sensitive}
               aspectRatio="16/9"
               containerClassName="rounded-lg shadow-lg"
               className="w-full h-full object-cover"
