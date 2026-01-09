@@ -1,4 +1,4 @@
-import { MessageCircle, Twitter, Link as LinkIcon, Check } from "lucide-react";
+import { MessageCircle, Twitter, Link as LinkIcon, Check, Facebook } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -6,12 +6,18 @@ import { toast } from "sonner";
 interface ShareButtonsProps {
   title: string;
   url: string;
+  slug?: string;
 }
 
-const ShareButtons = ({ title, url }: ShareButtonsProps) => {
+const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = encodeURIComponent(url);
+  // Use OG image edge function URL for social sharing (crawlers will get proper meta tags)
+  const ogUrl = slug 
+    ? `https://ixfgtcxthdjjftsltlrk.supabase.co/functions/v1/og-image?slug=${encodeURIComponent(slug)}`
+    : url;
+  
+  const shareUrl = encodeURIComponent(ogUrl);
   const shareTitle = encodeURIComponent(title);
 
   const handleCopyLink = async () => {
@@ -48,7 +54,22 @@ const ShareButtons = ({ title, url }: ShareButtonsProps) => {
         variant="outline"
         size="sm"
         asChild
-        className="text-blue-500 border-blue-500 hover:bg-blue-50 hover:text-blue-600"
+        className="text-blue-600 border-blue-600 hover:bg-blue-50 hover:text-blue-700"
+      >
+        <a
+          href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Facebook size={16} />
+        </a>
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        asChild
+        className="text-sky-500 border-sky-500 hover:bg-sky-50 hover:text-sky-600"
       >
         <a
           href={`https://twitter.com/intent/tweet?text=${shareTitle}&url=${shareUrl}`}
