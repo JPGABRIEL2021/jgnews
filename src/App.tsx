@@ -18,6 +18,7 @@ import TermsPage from "./pages/TermsPage";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RedirectByIdToSlug from "./components/RedirectByIdToSlug";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -68,6 +69,19 @@ const App = () => (
                   <PostEditorPage />
                 </ProtectedRoute>
               }
+            />
+            {/* Redirects for old ID-based URLs */}
+            <Route
+              path="/admin/edit-by-id/:id"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <RedirectByIdToSlug basePath="/admin/edit" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/post-by-id/:id"
+              element={<RedirectByIdToSlug basePath="/post" />}
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
