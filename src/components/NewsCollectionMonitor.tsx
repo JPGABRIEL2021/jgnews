@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Activity,
   CheckCircle,
@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Calendar,
   TrendingUp,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,7 +81,39 @@ export default function NewsCollectionMonitor() {
   const sites = config?.filter((c) => c.type === "site") || [];
   const topics = config?.filter((c) => c.type === "topic") || [];
   const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
+  const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
   const currentScheduleInterval = config?.find((c) => c.type === "schedule_interval")?.value as ScheduleIntervalValue | undefined;
+
+  // Auto-run logic (Client-side watchdog) - Ensures collection occurs even if backend cron fails
+  useEffect(() => {
+    if (!currentScheduleInterval || !lastCollection) return;
+
+    // Parse interval
+    const intervalMap: Record<string, number> = {
+      "30m": 30 * 60 * 1000,
+      "1h": 60 * 60 * 1000,
+      "2h": 2 * 60 * 60 * 1000,
+      "6h": 6 * 60 * 60 * 1000,
+    };
+
+    const intervalMs = intervalMap[currentScheduleInterval] || 60 * 60 * 1000;
+
+    // Check every minute
+    const checkTimer = setInterval(() => {
+      // Don't trigger if already running
+      if (triggerCollection.isPending || lastCollection.status === 'running') return;
+
+      const timeSinceLast = Date.now() - new Date(lastCollection.started_at).getTime();
+
+      // If time passed + 2 minutes buffer (to let backend try first), trigger it
+      if (timeSinceLast > (intervalMs + 2 * 60 * 1000)) {
+        console.log("⏰ Watchdog: Triggering auto-collection (backend missed schedule)");
+        triggerCollection.mutate();
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(checkTimer);
+  }, [currentScheduleInterval, lastCollection, triggerCollection]);
 
   // Filter logs by period
   const filteredLogs = useMemo(() => {
@@ -165,6 +198,10 @@ export default function NewsCollectionMonitor() {
           <CardTitle className="flex items-center gap-2 text-lg">
             <Activity className="h-5 w-5 text-primary" />
             Monitor de Coleta Automática
+            <Badge variant="outline" className="ml-2 gap-1 text-xs font-normal border-green-500/50 text-green-600 bg-green-500/10">
+              <Zap className="h-3 w-3" />
+              Monitoramento Ativo
+            </Badge>
           </CardTitle>
           <div className="flex gap-2">
             <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as PeriodFilter)}>
@@ -224,9 +261,9 @@ export default function NewsCollectionMonitor() {
             <div className="text-sm font-medium text-muted-foreground">
               {lastCollection
                 ? formatDistanceToNow(new Date(lastCollection.started_at), {
-                    addSuffix: true,
-                    locale: ptBR,
-                  })
+                  addSuffix: true,
+                  locale: ptBR,
+                })
                 : "—"}
             </div>
             <div className="text-xs text-muted-foreground">Última Coleta</div>
@@ -272,13 +309,13 @@ export default function NewsCollectionMonitor() {
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 11 }} 
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 11 }}
                           className="text-muted-foreground"
                         />
-                        <YAxis 
-                          tick={{ fontSize: 11 }} 
+                        <YAxis
+                          tick={{ fontSize: 11 }}
                           className="text-muted-foreground"
                           allowDecimals={false}
                         />
@@ -312,13 +349,13 @@ export default function NewsCollectionMonitor() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 11 }} 
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 11 }}
                           className="text-muted-foreground"
                         />
-                        <YAxis 
-                          tick={{ fontSize: 11 }} 
+                        <YAxis
+                          tick={{ fontSize: 11 }}
                           className="text-muted-foreground"
                           allowDecimals={false}
                         />
