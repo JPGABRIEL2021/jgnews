@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Save, Loader2, Eye } from "lucide-react";
+import DOMPurify from "dompurify";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -377,7 +378,10 @@ const PostEditorPage = () => {
                 <div 
                   className="prose prose-lg max-w-none dark:prose-invert"
                   dangerouslySetInnerHTML={{ 
-                    __html: formData.content || "<p>Conteúdo da notícia...</p>" 
+                    __html: DOMPurify.sanitize(formData.content || "<p>Conteúdo da notícia...</p>", {
+                      ALLOWED_TAGS: ['p', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'strong', 'em', 'a', 'br', 'span', 'img'],
+                      ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'src', 'alt']
+                    })
                   }}
                 />
               </article>
