@@ -83,37 +83,35 @@ export default function NewsCollectionMonitor() {
   const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
   const currentScheduleInterval = config?.find((c) => c.type === "schedule_interval")?.value as ScheduleIntervalValue | undefined;
 
+  // Get the most recent collection for watchdog logic
+  const mostRecentCollection = allLogs?.[0];
+
   // Auto-run logic (Client-side watchdog)
   useEffect(() => {
-    // If no config or logs not loaded yet, wait
-    if (!currentScheduleInterval || logsLoading) return;
-
-    // Use absolute latest log (regardless of filter), or null if history is empty
-    const latestLog = allLogs && allLogs.length > 0 ? allLogs[0] : null;
+    if (!currentScheduleInterval || !lastCollection) return;
 
     // Parse interval
     const intervalMap: Record<string, number> = {
       "30m": 30 * 60 * 1000,
       "1h": 60 * 60 * 1000,
       "2h": 2 * 60 * 60 * 1000,
+      "4h": 4 * 60 * 60 * 1000,
       "6h": 6 * 60 * 60 * 1000,
+      "12h": 12 * 60 * 60 * 1000,
+      "24h": 24 * 60 * 60 * 1000,
     };
-
     const intervalMs = intervalMap[currentScheduleInterval] || 60 * 60 * 1000;
 
-    const checkAndTrigger = () => {
-      // Don't trigger if already running (optimistic check)
-      if (triggerCollection.isPending) return;
-      if (latestLog && latestLog.status === 'running') return;
+    // Check every minute
+    const checkTimer = setInterval(() => {
+      // Don't trigger if already running
+      if (triggerCollection.isPending || lastCollection.status === 'running') return;
 
-      const now = Date.now();
-      const lastRunTime = latestLog ? new Date(latestLog.started_at).getTime() : 0;
-      const timeSinceLast = now - lastRunTime;
+      const timeSinceLast = Date.now() - new Date(lastCollection.started_at).getTime();
 
-      // If time passed + 2 minutes buffer (to avoid race conditions), trigger it
-      // Note: If lastRunTime is 0 (never ran), this is always true
+      // If time passed + 2 minutes buffer (to let backend try first), trigger it
       if (timeSinceLast > (intervalMs + 2 * 60 * 1000)) {
-        console.log(`⏰ Watchdog: Triggering auto-collection. Last run: ${latestLog ? formatDistanceToNow(new Date(latestLog.started_at)) : 'Never'}`);
+        console.log("⏰ Watchdog: Triggering auto-collection (backend missed schedule)");
         triggerCollection.mutate();
       }
     };
@@ -125,7 +123,7 @@ export default function NewsCollectionMonitor() {
     const checkTimer = setInterval(checkAndTrigger, 60000);
 
     return () => clearInterval(checkTimer);
-  }, [currentScheduleInterval, allLogs, logsLoading, triggerCollection]);
+  }, [currentScheduleInterval, lastCollection, triggerCollection]);
 
   // Filter logs by period
   const filteredLogs = useMemo(() => {
