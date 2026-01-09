@@ -224,7 +224,14 @@ const PostEditorPage = () => {
                 id="slug"
                 value={formData.slug}
                 onChange={(e) => {
-                  setFormData(prev => ({ ...prev, slug: e.target.value }));
+                  const newSlug = e.target.value
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9-]/g, "-")
+                    .replace(/-+/g, "-")
+                    .replace(/(^-|-$)/g, "");
+                  setFormData(prev => ({ ...prev, slug: newSlug }));
                   setSlugError(null);
                 }}
                 onBlur={() => checkSlugUnique(formData.slug)}
@@ -238,9 +245,12 @@ const PostEditorPage = () => {
             {slugError ? (
               <p className="text-xs text-destructive">{slugError}</p>
             ) : (
-              <p className="text-xs text-news-muted">
-                URL: /post/{formData.slug || "url-da-noticia"}
-              </p>
+              <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md border">
+                <span className="text-xs text-muted-foreground">Preview:</span>
+                <code className="text-xs text-primary font-mono break-all">
+                  jgnews.com.br/post/{formData.slug || "url-da-noticia"}
+                </code>
+              </div>
             )}
           </div>
 
@@ -386,7 +396,7 @@ const PostEditorPage = () => {
                   <div className="relative aspect-video rounded-lg overflow-hidden">
                     <img
                       src={formData.cover_image}
-                      alt={formData.title}
+                      alt={`Imagem: ${formData.title || "Notícia"}`}
                       className="w-full h-full object-cover"
                     />
                     {formData.is_breaking && (
