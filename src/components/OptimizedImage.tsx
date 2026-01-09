@@ -11,6 +11,49 @@ interface OptimizedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   quality?: number;
 }
 
+// Cloudinary cloud name from environment
+const CLOUDINARY_CLOUD_NAME = "dxlduqbwv";
+
+/**
+ * Generate Cloudinary fetch URL for automatic WebP/AVIF conversion
+ * Uses Cloudinary's fetch mode to optimize external images
+ */
+const getCloudinaryUrl = (
+  src: string,
+  width?: number,
+  quality: number = 80
+): string => {
+  // Skip if already a Cloudinary URL, placeholder, or data URL
+  if (
+    !src ||
+    src.includes("cloudinary.com") ||
+    src.startsWith("/") ||
+    src.startsWith("data:")
+  ) {
+    return src;
+  }
+
+  // Validate URL
+  try {
+    new URL(src);
+  } catch {
+    return src;
+  }
+
+  // Build Cloudinary transformations
+  const transformations = [
+    "f_auto", // Auto format (WebP/AVIF based on browser support)
+    `q_${quality}`, // Quality
+    width ? `w_${width}` : "w_auto", // Width
+    "c_limit", // Don't upscale
+    "dpr_auto", // Auto DPR for retina
+  ].join(",");
+
+  // Use Cloudinary fetch mode to optimize external URLs
+  const encodedUrl = encodeURIComponent(src);
+  return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/fetch/${transformations}/${encodedUrl}`;
+};
+
 const OptimizedImage = ({
   src,
   alt,
@@ -18,6 +61,8 @@ const OptimizedImage = ({
   aspectRatio,
   containerClassName,
   className,
+  width,
+  quality = 80,
   ...props
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -25,11 +70,21 @@ const OptimizedImage = ({
   const [isInView, setIsInView] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Use the original source directly - browser handles format negotiation
+  // Generate optimized Cloudinary URL
   const imageSrc = useMemo(() => {
     if (hasError) return fallbackSrc;
-    return src;
-  }, [src, hasError, fallbackSrc]);
+    return getCloudinaryUrl(src, width, quality);
+  }, [src, width, quality, hasError, fallbackSrc]);
+
+  // Fallback to original if Cloudinary fails
+  const handleCloudinaryError = () => {
+    if (!hasError && imageSrc !== src && imageSrc !== fallbackSrc) {
+      // Try original URL before giving up
+      setHasError(false);
+      return src;
+    }
+    return fallbackSrc;
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -56,10 +111,24 @@ const OptimizedImage = ({
     setIsLoaded(true);
   };
 
+  const [currentSrc, setCurrentSrc] = useState<string | null>(null);
+  
+  useEffect(() => {
+    setCurrentSrc(imageSrc);
+    setIsLoaded(false);
+    setHasError(false);
+  }, [imageSrc]);
+
   const handleError = () => {
     if (!hasError) {
-      setHasError(true);
-      setIsLoaded(true);
+      // If Cloudinary URL failed, try original
+      if (currentSrc !== src && currentSrc !== fallbackSrc) {
+        setCurrentSrc(src);
+      } else {
+        setHasError(true);
+        setCurrentSrc(fallbackSrc);
+        setIsLoaded(true);
+      }
     }
   };
 
@@ -83,15 +152,14 @@ const OptimizedImage = ({
       )}
       
       {/* Actual image - only load when in view */}
-      {isInView && (
+      {isInView && currentSrc && (
         <img
-          src={imageSrc}
+          src={currentSrc}
           alt={alt}
           loading="lazy"
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
-          // Add fetchpriority for LCP images (when they're visible immediately)
           fetchPriority={props.fetchPriority}
           className={cn(
             "transition-opacity duration-500 ease-out w-full h-full object-cover",
