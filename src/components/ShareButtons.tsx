@@ -13,8 +13,10 @@ const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
   const [copied, setCopied] = useState(false);
 
   // Use OG image edge function URL for social sharing (crawlers will get proper meta tags)
+  // Add cache-busting parameter based on current date (changes daily)
+  const cacheBuster = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
   const ogUrl = slug 
-    ? `https://ixfgtcxthdjjftsltlrk.supabase.co/functions/v1/og-image?slug=${encodeURIComponent(slug)}`
+    ? `https://ixfgtcxthdjjftsltlrk.supabase.co/functions/v1/og-image?slug=${encodeURIComponent(slug)}&v=${cacheBuster}`
     : url;
   
   const shareUrl = encodeURIComponent(ogUrl);
