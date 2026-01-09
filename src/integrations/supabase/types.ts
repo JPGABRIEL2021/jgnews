@@ -124,6 +124,7 @@ export type Database = {
           is_sensitive: boolean
           scheduled_at: string | null
           slug: string
+          sources: Json | null
           title: string
           updated_at: string
         }
@@ -140,6 +141,7 @@ export type Database = {
           is_sensitive?: boolean
           scheduled_at?: string | null
           slug: string
+          sources?: Json | null
           title: string
           updated_at?: string
         }
@@ -156,6 +158,7 @@ export type Database = {
           is_sensitive?: boolean
           scheduled_at?: string | null
           slug?: string
+          sources?: Json | null
           title?: string
           updated_at?: string
         }

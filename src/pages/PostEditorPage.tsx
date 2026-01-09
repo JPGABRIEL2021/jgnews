@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, Eye } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Eye, Plus, Trash2, ExternalLink } from "lucide-react";
 import DOMPurify from "dompurify";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -29,7 +29,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useCreatePost, useUpdatePost, usePost } from "@/hooks/usePosts";
-import { categories, PostInsert } from "@/lib/posts";
+import { categories, PostInsert, PostSource } from "@/lib/posts";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -54,6 +54,7 @@ const PostEditorPage = () => {
     is_breaking: false,
     is_sensitive: false,
     scheduled_at: null,
+    sources: [],
   });
 
   const [showPreview, setShowPreview] = useState(false);
@@ -136,9 +137,34 @@ const PostEditorPage = () => {
         is_breaking: existingPost.is_breaking,
         is_sensitive: existingPost.is_sensitive || false,
         scheduled_at: existingPost.scheduled_at,
+        sources: existingPost.sources || [],
       });
     }
   }, [existingPost, isEditing]);
+
+  // Source management functions
+  const addSource = () => {
+    setFormData(prev => ({
+      ...prev,
+      sources: [...prev.sources, { name: "", url: "" }]
+    }));
+  };
+
+  const updateSource = (index: number, field: keyof PostSource, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sources: prev.sources.map((source, i) => 
+        i === index ? { ...source, [field]: value } : source
+      )
+    }));
+  };
+
+  const removeSource = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      sources: prev.sources.filter((_, i) => i !== index)
+    }));
+  };
 
   const generateSlug = (title: string) => {
     return title
@@ -344,6 +370,65 @@ const PostEditorPage = () => {
               onChange={(content) => setFormData(prev => ({ ...prev, content }))}
               placeholder="Escreva o conteúdo da notícia..."
             />
+          </div>
+
+          {/* Reference Sources */}
+          <div className="space-y-4 py-4 border-t border-b border-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Fontes de Referência</Label>
+                <p className="text-sm text-muted-foreground">Adicione links para as fontes originais da notícia (opcional)</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addSource}
+                className="gap-1"
+              >
+                <Plus size={16} />
+                Adicionar Fonte
+              </Button>
+            </div>
+            
+            {formData.sources.length > 0 && (
+              <div className="space-y-3">
+                {formData.sources.map((source, index) => (
+                  <div key={index} className="flex gap-3 items-start p-3 bg-muted/30 rounded-lg">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor={`source-name-${index}`} className="text-xs">Nome da Fonte</Label>
+                        <Input
+                          id={`source-name-${index}`}
+                          value={source.name}
+                          onChange={(e) => updateSource(index, 'name', e.target.value)}
+                          placeholder="Ex: Ministério da Saúde"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`source-url-${index}`} className="text-xs">URL</Label>
+                        <Input
+                          id={`source-url-${index}`}
+                          value={source.url}
+                          onChange={(e) => updateSource(index, 'url', e.target.value)}
+                          placeholder="https://..."
+                          type="url"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeSource(index)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Schedule */}

@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calendar, User } from "lucide-react";
+import { ArrowLeft, Calendar, User, ExternalLink } from "lucide-react";
 import DOMPurify from "dompurify";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -13,6 +13,7 @@ import AdBanner from "@/components/AdBanner";
 import { usePost, usePosts, usePostsRealtime } from "@/hooks/usePosts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PostSource } from "@/lib/posts";
 
 const ArticlePage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -166,6 +167,33 @@ const ArticlePage = () => {
               })
             }}
           />
+
+          {/* Reference Sources */}
+          {post.sources && post.sources.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-news">
+              <p className="text-sm text-news-muted">
+                {post.sources.length === 1 ? 'Fonte: ' : 'Fontes: '}
+                {post.sources.map((source: PostSource, index: number) => (
+                  <span key={index}>
+                    {source.url ? (
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="nofollow noopener noreferrer"
+                        className="text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        {source.name}
+                        <ExternalLink size={12} />
+                      </a>
+                    ) : (
+                      <span>{source.name}</span>
+                    )}
+                    {index < post.sources.length - 1 && ', '}
+                  </span>
+                ))}
+              </p>
+            </div>
+          )}
 
           {/* Ad Banner - After Content */}
           <div className="my-8">
