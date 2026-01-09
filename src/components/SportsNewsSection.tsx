@@ -24,7 +24,7 @@ const SportsNewsSection = () => {
               <Trophy className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Esportes</h2>
+              <h4 className="text-2xl font-bold text-foreground">Esportes</h4>
               <p className="text-sm text-muted-foreground">Futebol, olimpíadas e mais</p>
             </div>
           </div>
@@ -65,10 +65,11 @@ const SportsNewsCard = ({ post }: { post: Post }) => {
       to={`/post/${post.slug}`} 
       className="group block bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-border"
     >
-      <div className="relative aspect-video overflow-hidden">
+      <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
         <OptimizedImage
           src={post.cover_image}
-          alt={post.title}
+          alt={`Imagem: ${post.title}`}
+          aspectRatio="16/9"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute top-2 left-2">
@@ -78,9 +79,9 @@ const SportsNewsCard = ({ post }: { post: Post }) => {
         </div>
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+        <span className="font-semibold text-foreground line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors block">
           {post.title}
-        </h3>
+        </span>
         <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
           {post.excerpt}
         </p>

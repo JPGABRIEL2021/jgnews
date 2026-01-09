@@ -18,14 +18,15 @@ const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
       >
         <OptimizedImage
           src={post.cover_image}
-          alt={post.title}
+          alt={`Imagem: ${post.title}`}
+          aspectRatio="3/2"
           containerClassName="w-24 h-16 flex-shrink-0 rounded"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="flex flex-col justify-center min-w-0">
-          <h3 className="text-sm font-semibold text-news-primary line-clamp-2 group-hover:text-primary transition-colors">
+          <span className="text-sm font-semibold text-news-primary line-clamp-2 group-hover:text-primary transition-colors block">
             {post.title}
-          </h3>
+          </span>
           <TimeAgo date={post.created_at} className="text-xs mt-1" />
         </div>
       </Link>
@@ -40,7 +41,8 @@ const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
       {/* Thumbnail */}
       <OptimizedImage
         src={post.cover_image}
-        alt={post.title}
+        alt={`Imagem: ${post.title}`}
+        aspectRatio="16/9"
         containerClassName="w-32 sm:w-40 md:w-48 h-24 sm:h-28 md:h-32 flex-shrink-0 rounded-lg"
         className="w-full h-full object-cover news-card-image"
       />
@@ -51,9 +53,9 @@ const NewsCard = ({ post, variant = "horizontal" }: NewsCardProps) => {
           <CategoryBadge category={post.category} size="sm" />
           <TimeAgo date={post.created_at} className="text-xs hidden sm:inline" />
         </div>
-        <h3 className="headline-tertiary news-card-title line-clamp-2 sm:line-clamp-3">
+        <span className="headline-tertiary news-card-title line-clamp-2 sm:line-clamp-3 block">
           {post.title}
-        </h3>
+        </span>
         <p className="text-news-muted text-sm line-clamp-2 mt-1 hidden md:block transition-colors duration-300 group-hover:text-news-secondary">
           {post.excerpt}
         </p>

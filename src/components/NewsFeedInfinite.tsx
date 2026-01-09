@@ -19,7 +19,7 @@ const NewsFeedInfinite = ({ posts, title = "Últimas Notícias", isLoading: exte
   return (
     <section className="py-6">
       <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-primary">
-        <h2 className="text-xl font-bold text-news-primary">{title}</h2>
+        <h4 className="text-xl font-bold text-news-primary">{title}</h4>
         <div className="flex-1 h-px bg-news-border" />
       </div>
       
