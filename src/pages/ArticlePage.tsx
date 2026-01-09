@@ -144,7 +144,7 @@ const ArticlePage = () => {
           </figure>
 
           {/* Share Buttons */}
-          <div className="mb-3">
+          <div className="mb-2">
             <ShareButtons
               title={post.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
@@ -153,7 +153,7 @@ const ArticlePage = () => {
           </div>
 
           {/* Ad Banner - Before Content */}
-          <div className="mb-4">
+          <div className="mb-3">
             <AdBanner format="horizontal" className="min-h-[50px] md:min-h-[90px] bg-muted/30 rounded-lg" />
           </div>
 
