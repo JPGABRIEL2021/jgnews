@@ -17,13 +17,13 @@ import { PostSource } from "@/lib/posts";
 
 const ArticlePage = () => {
   const { slug } = useParams<{ slug: string }>();
-  
+
   // Enable realtime updates
   usePostsRealtime();
 
   const { data: post, isLoading, error } = usePost(slug || "");
   const { data: allPosts = [] } = usePosts();
-  
+
   const relatedPosts = allPosts.filter(p => p.slug !== slug).slice(0, 4);
 
   if (isLoading) {
@@ -103,11 +103,11 @@ const ArticlePage = () => {
           {/* Article Header */}
           <header className="mb-8">
             <CategoryBadge category={post.category} size="lg" />
-            
+
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-news-primary mt-4 mb-4 leading-tight">
               {post.title}
             </h1>
-            
+
             <p className="text-xl text-news-secondary mb-6">
               {post.excerpt}
             </p>
@@ -128,7 +128,7 @@ const ArticlePage = () => {
           </header>
 
           {/* Featured Image - Hero image with priority loading for LCP */}
-          <figure className="mb-8">
+          <figure className="mb-4">
             <SensitiveImage
               src={post.cover_image}
               alt={`Imagem: ${post.title}`}
@@ -144,7 +144,7 @@ const ArticlePage = () => {
           </figure>
 
           {/* Share Buttons */}
-          <div className="mb-8">
+          <div className="mb-4">
             <ShareButtons
               title={post.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
@@ -153,14 +153,14 @@ const ArticlePage = () => {
           </div>
 
           {/* Ad Banner - Before Content */}
-          <div className="mb-8">
+          <div className="mb-6">
             <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
           </div>
 
           {/* Article Content - Sanitized to prevent XSS */}
           <div
             className="article-content"
-            dangerouslySetInnerHTML={{ 
+            dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(post.content, {
                 ALLOWED_TAGS: ['p', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'strong', 'em', 'a', 'br', 'span'],
                 ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
