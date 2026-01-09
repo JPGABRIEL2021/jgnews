@@ -128,7 +128,7 @@ const ArticlePage = () => {
           </header>
 
           {/* Featured Image - Hero image with priority loading for LCP */}
-          <figure className="mb-4">
+          <figure className="mb-3">
             <SensitiveImage
               src={post.cover_image}
               alt={`Imagem: ${post.title}`}
@@ -144,7 +144,7 @@ const ArticlePage = () => {
           </figure>
 
           {/* Share Buttons */}
-          <div className="mb-4">
+          <div className="mb-3">
             <ShareButtons
               title={post.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
@@ -153,8 +153,8 @@ const ArticlePage = () => {
           </div>
 
           {/* Ad Banner - Before Content */}
-          <div className="mb-6">
-            <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
+          <div className="mb-4">
+            <AdBanner format="horizontal" className="min-h-[50px] md:min-h-[90px] bg-muted/30 rounded-lg" />
           </div>
 
           {/* Article Content - Sanitized to prevent XSS */}
@@ -196,8 +196,8 @@ const ArticlePage = () => {
           )}
 
           {/* Ad Banner - After Content */}
-          <div className="my-8">
-            <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
+          <div className="my-6">
+            <AdBanner format="horizontal" className="min-h-[50px] md:min-h-[90px] bg-muted/30 rounded-lg" />
           </div>
 
           {/* Bottom Share */}
