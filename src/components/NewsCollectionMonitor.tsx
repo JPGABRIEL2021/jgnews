@@ -81,39 +81,42 @@ export default function NewsCollectionMonitor() {
   const sites = config?.filter((c) => c.type === "site") || [];
   const topics = config?.filter((c) => c.type === "topic") || [];
   const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
-  const currentTimeFilter = config?.find((c) => c.type === "time_filter")?.value as TimeFilterValue | undefined;
   const currentScheduleInterval = config?.find((c) => c.type === "schedule_interval")?.value as ScheduleIntervalValue | undefined;
+
+  // Get the most recent collection for watchdog logic
+  const mostRecentCollection = allLogs?.[0];
 
   // Auto-run logic (Client-side watchdog) - Ensures collection occurs even if backend cron fails
   useEffect(() => {
-    if (!currentScheduleInterval || !lastCollection) return;
+    if (!currentScheduleInterval || !mostRecentCollection) return;
 
     // Parse interval
     const intervalMap: Record<string, number> = {
       "30m": 30 * 60 * 1000,
       "1h": 60 * 60 * 1000,
       "2h": 2 * 60 * 60 * 1000,
+      "4h": 4 * 60 * 60 * 1000,
       "6h": 6 * 60 * 60 * 1000,
+      "12h": 12 * 60 * 60 * 1000,
+      "24h": 24 * 60 * 60 * 1000,
     };
-
     const intervalMs = intervalMap[currentScheduleInterval] || 60 * 60 * 1000;
 
-    // Check every minute
     const checkTimer = setInterval(() => {
       // Don't trigger if already running
-      if (triggerCollection.isPending || lastCollection.status === 'running') return;
+      if (triggerCollection.isPending || mostRecentCollection.status === 'running') return;
 
-      const timeSinceLast = Date.now() - new Date(lastCollection.started_at).getTime();
+      const timeSinceLast = Date.now() - new Date(mostRecentCollection.started_at).getTime();
 
       // If time passed + 2 minutes buffer (to let backend try first), trigger it
-      if (timeSinceLast > (intervalMs + 2 * 60 * 1000)) {
-        console.log("⏰ Watchdog: Triggering auto-collection (backend missed schedule)");
+      if (timeSinceLast >= intervalMs + 2 * 60 * 1000) {
+        console.log('Watchdog: Backend cron appears inactive, triggering collection...');
         triggerCollection.mutate();
       }
     }, 60000); // Check every minute
 
     return () => clearInterval(checkTimer);
-  }, [currentScheduleInterval, lastCollection, triggerCollection]);
+  }, [currentScheduleInterval, mostRecentCollection, triggerCollection]);
 
   // Filter logs by period
   const filteredLogs = useMemo(() => {

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -13,6 +14,127 @@ interface NewsletterRequest {
   subject: string;
   content: string;
   testEmail?: string;
+}
+
+// Allowed HTML tags and attributes for newsletter content
+const ALLOWED_TAGS = new Set([
+  'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'ul', 'ol', 'li',
+  'strong', 'b', 'em', 'i', 'u',
+  'a', 'br', 'hr',
+  'img',
+  'blockquote',
+  'span', 'div',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td'
+]);
+
+const ALLOWED_ATTRIBUTES: Record<string, Set<string>> = {
+  'a': new Set(['href', 'title', 'target']),
+  'img': new Set(['src', 'alt', 'title', 'width', 'height']),
+  '*': new Set(['style', 'class'])
+};
+
+// Simple HTML sanitizer for Deno
+function sanitizeHtml(html: string): string {
+  try {
+    const doc = new DOMParser().parseFromString(
+      `<div>${html}</div>`,
+      "text/html"
+    );
+    
+    if (!doc) {
+      console.warn("Failed to parse HTML, returning escaped content");
+      return escapeHtml(html);
+    }
+
+    const container = doc.querySelector("div");
+    if (!container) {
+      return escapeHtml(html);
+    }
+
+    sanitizeNode(container);
+    return container.innerHTML;
+  } catch (error) {
+    console.error("HTML sanitization error:", error);
+    return escapeHtml(html);
+  }
+}
+
+function sanitizeNode(node: any): void {
+  const childNodes = Array.from(node.childNodes || []) as any[];
+  
+  for (const child of childNodes) {
+    if (child.nodeType === 1) { // Element node
+      const tagName = (child.tagName as string)?.toLowerCase();
+      
+      // Remove disallowed tags but keep their text content
+      if (!ALLOWED_TAGS.has(tagName)) {
+        const textContent = (child.textContent as string) || "";
+        const textNode = node.ownerDocument.createTextNode(textContent);
+        node.replaceChild(textNode, child);
+        continue;
+      }
+      
+      // Remove dangerous attributes
+      const attributes = Array.from((child.attributes as any) || []) as any[];
+      for (const attr of attributes) {
+        const attrName = (attr.name as string).toLowerCase();
+        const allowedForTag = ALLOWED_ATTRIBUTES[tagName] || new Set();
+        const allowedGlobal = ALLOWED_ATTRIBUTES['*'] || new Set();
+        
+        // Remove event handlers and javascript: URLs
+        if (attrName.startsWith('on') || 
+            (attrName === 'href' && (attr.value as string)?.toLowerCase().includes('javascript:')) ||
+            (attrName === 'src' && (attr.value as string)?.toLowerCase().includes('javascript:'))) {
+          child.removeAttribute(attr.name);
+          continue;
+        }
+        
+        // Only allow whitelisted attributes
+        if (!allowedForTag.has(attrName) && !allowedGlobal.has(attrName)) {
+          child.removeAttribute(attr.name);
+        }
+        
+        // Sanitize URLs - only allow http, https, and mailto
+        if ((attrName === 'href' || attrName === 'src') && attr.value) {
+          const url = (attr.value as string).toLowerCase().trim();
+          if (!url.startsWith('http://') && 
+              !url.startsWith('https://') && 
+              !url.startsWith('mailto:') &&
+              !url.startsWith('/') &&
+              !url.startsWith('#')) {
+            child.removeAttribute(attr.name);
+          }
+        }
+      }
+      
+      // Recursively sanitize children
+      sanitizeNode(child);
+    } else if (child.nodeType === 8) { // Comment node - remove
+      node.removeChild(child);
+    }
+  }
+}
+
+function escapeHtml(text: string): string {
+  const htmlEscapes: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  return text.replace(/[&<>"']/g, char => htmlEscapes[char]);
+}
+
+// Validate and sanitize subject
+function sanitizeSubject(subject: string): string {
+  // Remove any potential header injection attempts
+  return subject
+    .replace(/[\r\n]/g, ' ')  // Remove newlines that could inject headers
+    .replace(/[<>]/g, '')      // Remove HTML tags
+    .trim()
+    .slice(0, 200);            // Limit length
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -56,9 +178,29 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Subject and content are required");
     }
 
+    // Validate input lengths
+    if (subject.length > 500) {
+      throw new Error("Subject is too long (max 500 characters)");
+    }
+
+    if (content.length > 500000) {
+      throw new Error("Content is too long (max 500KB)");
+    }
+
+    // Sanitize subject and content
+    const sanitizedSubject = sanitizeSubject(subject);
+    const sanitizedContent = sanitizeHtml(content);
+
+    console.log("Sanitized newsletter content for sending");
+
     let recipients: string[] = [];
 
     if (testEmail) {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(testEmail)) {
+        throw new Error("Invalid test email format");
+      }
       // Send test email to a single address
       recipients = [testEmail];
       console.log("Sending test email to:", testEmail);
@@ -81,14 +223,14 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`Sending newsletter to ${recipients.length} subscribers`);
     }
 
-    // Build HTML email
+    // Build HTML email with sanitized content
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${subject}</title>
+          <title>${escapeHtml(sanitizedSubject)}</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
@@ -105,7 +247,7 @@ const handler = async (req: Request): Promise<Response> => {
             <h1>JG News</h1>
           </div>
           <div class="content">
-            ${content}
+            ${sanitizedContent}
           </div>
           <div class="footer">
             <p>Você está recebendo este email porque se inscreveu na nossa newsletter.</p>
@@ -131,7 +273,7 @@ const handler = async (req: Request): Promise<Response> => {
           const response = await resend.emails.send({
             from: "JG News <onboarding@resend.dev>",
             to: [email],
-            subject: subject,
+            subject: sanitizedSubject,
             html: htmlContent,
           });
           
