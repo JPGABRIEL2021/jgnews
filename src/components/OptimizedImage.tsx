@@ -65,9 +65,12 @@ const OptimizedImage = ({
   quality = 80,
   ...props
 }: OptimizedImageProps) => {
+  // For high priority images (like article covers), load immediately
+  const isHighPriority = props.fetchPriority === "high";
+  
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isInView, setIsInView] = useState(false);
+  const [isInView, setIsInView] = useState(isHighPriority);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Generate optimized Cloudinary URL
@@ -87,6 +90,12 @@ const OptimizedImage = ({
   };
 
   useEffect(() => {
+    // Skip observer for high priority images - they load immediately
+    if (isHighPriority) {
+      setIsInView(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -105,7 +114,7 @@ const OptimizedImage = ({
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [isHighPriority]);
 
   const handleLoad = () => {
     setIsLoaded(true);
