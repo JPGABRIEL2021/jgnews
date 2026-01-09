@@ -13,20 +13,21 @@ const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
   const [copied, setCopied] = useState(false);
 
   // Use OG image edge function URL for social sharing (crawlers will get proper meta tags)
-  // Add cache-busting parameter based on current date (changes daily)
-  const cacheBuster = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-  const ogUrl = slug 
+  // Cache-busting param to avoid WhatsApp/Facebook keeping an old preview
+  const cacheBuster = Date.now().toString(36);
+  const ogUrl = slug
     ? `https://ixfgtcxthdjjftsltlrk.supabase.co/functions/v1/og-image?slug=${encodeURIComponent(slug)}&v=${cacheBuster}`
     : url;
-  
+
   const shareUrl = encodeURIComponent(ogUrl);
   const shareTitle = encodeURIComponent(title);
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(url);
+      // Copy the sharing URL (the one with OG tags) to preserve preview.
+      await navigator.clipboard.writeText(ogUrl);
       setCopied(true);
-      toast.success("Link copiado!");
+      toast.success("Link de compartilhamento copiado!");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Erro ao copiar link");
