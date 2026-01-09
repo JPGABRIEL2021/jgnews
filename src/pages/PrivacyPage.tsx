@@ -100,8 +100,8 @@ const PrivacyPage = () => {
               </ul>
               <p>
                 Para exercer esses direitos, entre em contato pelo e-mail:{" "}
-                <a href="mailto:privacidade@jgnews.com.br" className="text-primary hover:underline">
-                  privacidade@jgnews.com.br
+                <a href="mailto:jptenorio.alves@gmail.com" className="text-primary hover:underline">
+                  jptenorio.alves@gmail.com
                 </a>
               </p>
             </section>
@@ -130,8 +130,8 @@ const PrivacyPage = () => {
               </p>
               <p>
                 E-mail:{" "}
-                <a href="mailto:privacidade@jgnews.com.br" className="text-primary hover:underline">
-                  privacidade@jgnews.com.br
+                <a href="mailto:jptenorio.alves@gmail.com" className="text-primary hover:underline">
+                  jptenorio.alves@gmail.com
                 </a>
               </p>
             </section>
