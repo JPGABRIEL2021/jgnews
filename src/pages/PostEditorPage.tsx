@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCreatePost, useUpdatePost, usePost } from "@/hooks/usePosts";
 import { categories, PostInsert } from "@/lib/posts";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const PostEditorPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -55,6 +56,43 @@ const PostEditorPage = () => {
   });
 
   const [showPreview, setShowPreview] = useState(false);
+  const [slugError, setSlugError] = useState<string | null>(null);
+  const [isCheckingSlug, setIsCheckingSlug] = useState(false);
+
+  // Check if slug is unique
+  const checkSlugUnique = async (slugToCheck: string): Promise<boolean> => {
+    if (!slugToCheck.trim()) return true;
+    
+    setIsCheckingSlug(true);
+    try {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("id, slug")
+        .eq("slug", slugToCheck)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error checking slug:", error);
+        return true;
+      }
+
+      // If editing, allow the current post's slug
+      if (data && isEditing && existingPost && data.id === existingPost.id) {
+        setSlugError(null);
+        return true;
+      }
+
+      if (data) {
+        setSlugError("Este slug já está em uso. Escolha outro.");
+        return false;
+      }
+
+      setSlugError(null);
+      return true;
+    } finally {
+      setIsCheckingSlug(false);
+    }
+  };
 
   // Load existing post data when editing
   useEffect(() => {
@@ -107,8 +145,15 @@ const PostEditorPage = () => {
       toast.error("O conteúdo é obrigatório");
       return;
     }
-    if (!formData.cover_image.trim()) {
-      toast.error("A imagem de capa é obrigatória");
+    if (!formData.slug.trim()) {
+      toast.error("O slug é obrigatório");
+      return;
+    }
+
+    // Check slug uniqueness before submitting
+    const isSlugUnique = await checkSlugUnique(formData.slug);
+    if (!isSlugUnique) {
+      toast.error("Este slug já está em uso. Escolha outro.");
       return;
     }
 
@@ -173,16 +218,30 @@ const PostEditorPage = () => {
 
           {/* Slug */}
           <div className="space-y-2">
-            <Label htmlFor="slug">URL (slug)</Label>
-            <Input
-              id="slug"
-              value={formData.slug}
-              onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-              placeholder="url-da-noticia"
-            />
-            <p className="text-xs text-news-muted">
-              URL: /post/{formData.slug || "url-da-noticia"}
-            </p>
+            <Label htmlFor="slug">URL (slug) *</Label>
+            <div className="relative">
+              <Input
+                id="slug"
+                value={formData.slug}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, slug: e.target.value }));
+                  setSlugError(null);
+                }}
+                onBlur={() => checkSlugUnique(formData.slug)}
+                placeholder="url-da-noticia"
+                className={slugError ? "border-destructive" : ""}
+              />
+              {isCheckingSlug && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+              )}
+            </div>
+            {slugError ? (
+              <p className="text-xs text-destructive">{slugError}</p>
+            ) : (
+              <p className="text-xs text-news-muted">
+                URL: /post/{formData.slug || "url-da-noticia"}
+              </p>
+            )}
           </div>
 
           {/* Category and Author */}
