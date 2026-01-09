@@ -57,8 +57,8 @@ const AboutPage = () => {
             <h2 className="text-2xl font-bold text-news-primary mt-8 mb-4">Contato</h2>
             <p>
               Para entrar em contato com nossa redação, envie um e-mail para{" "}
-              <a href="mailto:contato@jgnews.com.br" className="text-primary hover:underline">
-                contato@jgnews.com.br
+              <a href="mailto:jptenorio.alves@gmail.com" className="text-primary hover:underline">
+                jptenorio.alves@gmail.com
               </a>
             </p>
           </div>

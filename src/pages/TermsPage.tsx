@@ -124,8 +124,8 @@ const TermsPage = () => {
               </p>
               <p>
                 E-mail:{" "}
-                <a href="mailto:contato@jgnews.com.br" className="text-primary hover:underline">
-                  contato@jgnews.com.br
+                <a href="mailto:jptenorio.alves@gmail.com" className="text-primary hover:underline">
+                  jptenorio.alves@gmail.com
                 </a>
               </p>
             </section>
