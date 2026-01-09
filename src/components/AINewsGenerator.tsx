@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Sparkles, Loader2, X, Check, FileText, Search, Edit3, ExternalLink } from "lucide-react";
+import { Sparkles, Loader2, X, Check, FileText, Search, Edit3, ExternalLink, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -71,6 +73,7 @@ const AINewsGenerator = () => {
   // Generate tab state
   const [topic, setTopic] = useState("");
   const [category, setCategory] = useState("Geral");
+  const [isSensitive, setIsSensitive] = useState(false);
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [showPreview, setShowPreview] = useState(false);
   const [streamedText, setStreamedText] = useState("");
@@ -146,11 +149,18 @@ const AINewsGenerator = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { topic, category },
+        body: { topic, category, isSensitive },
         signal: abortControllerRef.current.signal,
       });
 
       if (error) {
+        // Handle rate limit and payment errors
+        if (error.message?.includes("429") || error.message?.includes("rate limit")) {
+          throw new Error("Limite de requisições excedido. Aguarde alguns minutos.");
+        }
+        if (error.message?.includes("402") || error.message?.includes("payment")) {
+          throw new Error("Créditos insuficientes. Adicione créditos ao seu workspace.");
+        }
         throw error;
       }
 
@@ -310,6 +320,7 @@ const AINewsGenerator = () => {
     setShowPreview(false);
     setStatus("idle");
     setTopic("");
+    setIsSensitive(false);
     setStreamedText("");
     setParsedContent({ title: "", subtitle: "", author: "", content: "", isUrgent: false });
   };
@@ -356,47 +367,65 @@ const AINewsGenerator = () => {
             <p className="text-muted-foreground text-sm">
               Digite um tópico e veja a IA gerando a notícia em tempo real.
             </p>
-            <div className="grid md:grid-cols-[1fr,200px,auto] gap-4 items-end">
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Tópico</label>
-                <Textarea
-                  placeholder="Ex: Preços do café no Brasil, Nova tecnologia de energia solar..."
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  className="min-h-[80px] resize-none"
-                  disabled={isGenerating}
-                />
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-[1fr,200px] gap-4 items-end">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Tópico</label>
+                  <Textarea
+                    placeholder="Ex: Preços do café no Brasil, Nova tecnologia de energia solar..."
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    className="min-h-[80px] resize-none"
+                    disabled={isGenerating}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Categoria</label>
+                  <Select value={category} onValueChange={setCategory} disabled={isGenerating}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Categoria</label>
-                <Select value={category} onValueChange={setCategory} disabled={isGenerating}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                  <Switch
+                    id="is_sensitive_ai"
+                    checked={isSensitive}
+                    onCheckedChange={setIsSensitive}
+                    disabled={isGenerating}
+                  />
+                  <Label htmlFor="is_sensitive_ai" className="cursor-pointer flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                    <EyeOff size={16} />
+                    Imagem Sensível (blur para AdSense)
+                  </Label>
+                </div>
+                
+                <Button 
+                  onClick={handleGenerate} 
+                  disabled={isGenerating || !topic.trim()}
+                  className="gap-2 h-10"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      Gerar com IA
+                    </>
+                  )}
+                </Button>
               </div>
-              <Button 
-                onClick={handleGenerate} 
-                disabled={isGenerating || !topic.trim()}
-                className="gap-2 h-10"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={18} />
-                    Gerar com IA
-                  </>
-                )}
-              </Button>
             </div>
           </TabsContent>
 
@@ -500,6 +529,16 @@ const AINewsGenerator = () => {
 
           <ScrollArea className="flex-1 max-h-[60vh] pr-4">
             <div className="space-y-4">
+              {/* Sensitive Image Badge */}
+              {isSensitive && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-2">
+                  <EyeOff size={16} className="text-amber-600" />
+                  <span className="text-sm text-amber-700 dark:text-amber-400 font-medium">
+                    Esta notícia será publicada com imagem sensível (blur ativado)
+                  </span>
+                </div>
+              )}
+
               {/* Urgency Badge */}
               {parsedContent.isUrgent && (
                 <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-2">

@@ -13,7 +13,8 @@ const GenerateNewsStreamSchema = z.object({
     .min(2, "Category must be at least 2 characters")
     .max(50, "Category must be less than 50 characters")
     .transform(s => s.trim())
-    .optional()
+    .optional(),
+  isSensitive: z.boolean().optional().default(false),
 });
 
 const corsHeaders = {
@@ -101,18 +102,18 @@ serve(async (req) => {
       );
     }
     
-    const { topic, category } = validated.data;
+    const { topic, category, isSensitive } = validated.data;
 
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    if (!OPENAI_API_KEY) {
-      console.error("OPENAI_API_KEY not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured");
       return new Response(
-        JSON.stringify({ error: "OpenAI API key not configured" }),
+        JSON.stringify({ error: "Lovable AI key not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`Streaming news generation for topic: ${topic}`);
+    console.log(`Streaming news generation for topic: ${topic}, sensitive: ${isSensitive}`);
 
     const systemPrompt = `Você é um jornalista sênior de um grande portal de notícias nacional, com padrão editorial semelhante ao Globo.com.
 
@@ -182,14 +183,14 @@ ESTRUTURA DO CONTEÚDO (SIGA ESTA ORDEM, MAS NÃO ESCREVA OS NOMES DAS SEÇÕES 
 
 IMPORTANTE: NÃO escreva os rótulos "LEAD", "CORPO", "IMPACTO", "CONTEXTO AMPLIADO" no texto. Escreva o conteúdo de forma fluida e natural, como em uma matéria de jornal real.`;
 
-    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Escreva uma notícia jornalística completa sobre: ${topic}` }
@@ -202,12 +203,19 @@ IMPORTANTE: NÃO escreva os rótulos "LEAD", "CORPO", "IMPACTO", "CONTEXTO AMPLI
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("OpenAI API error:", aiResponse.status, errorText);
+      console.error("Lovable AI error:", aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded" }),
+          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Payment required. Please add credits to your Lovable workspace." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
@@ -235,7 +243,7 @@ IMPORTANTE: NÃO escreva os rótulos "LEAD", "CORPO", "IMPACTO", "CONTEXTO AMPLI
               // Parse the full content and save to database
               try {
                 const parsed = parseGeneratedContent(fullContent);
-                const post = await savePost(parsed, category || "Geral", topic);
+                const post = await savePost(parsed, category || "Geral", topic, isSensitive);
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done", post })}\n\n`));
               } catch (err) {
                 console.error("Error saving post:", err);
@@ -322,7 +330,8 @@ function parseGeneratedContent(content: string): {
 async function savePost(
   parsed: { title: string; excerpt: string; content: string; author: string; slug: string; isUrgent: boolean },
   category: string,
-  topic: string
+  topic: string,
+  isSensitive: boolean
 ) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -343,6 +352,7 @@ async function savePost(
       author: parsed.author,
       is_featured: false,
       is_breaking: parsed.isUrgent,
+      is_sensitive: isSensitive,
     })
     .select()
     .single();
