@@ -117,11 +117,15 @@ const ArticlePage = () => {
 
           {/* Featured Image */}
           <figure className="mb-8">
-            <img
-              src={post.cover_image}
-              alt={post.title}
-              className="w-full rounded-lg shadow-lg"
-            />
+            <div className="relative w-full overflow-hidden rounded-lg shadow-lg" style={{ aspectRatio: '16/9' }}>
+              <img
+                src={post.cover_image}
+                alt={`Imagem: ${post.title}`}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover"
+              />
+            </div>
             <figcaption className="text-sm text-news-muted mt-2 text-center">
               {post.title}
             </figcaption>
@@ -161,9 +165,9 @@ const ArticlePage = () => {
         {relatedPosts.length > 0 && (
           <section className="bg-news-subtle py-8">
             <div className="container max-w-4xl">
-              <h2 className="text-xl font-bold text-news-primary mb-6 pb-3 border-b-2 border-primary">
+              <h4 className="text-xl font-bold text-news-primary mb-6 pb-3 border-b-2 border-primary">
                 Veja também
-              </h2>
+              </h4>
               <div className="space-y-0">
                 {relatedPosts.map((relatedPost) => (
                   <NewsCard key={relatedPost.id} post={relatedPost} />

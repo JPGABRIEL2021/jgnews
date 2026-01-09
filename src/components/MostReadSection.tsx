@@ -21,7 +21,7 @@ const MostReadSection = () => {
             <Flame className="w-5 h-5 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Mais Lidas</h2>
+            <h4 className="text-2xl font-bold text-foreground">Mais Lidas</h4>
             <p className="text-sm text-muted-foreground">As notícias mais acessadas</p>
           </div>
         </div>
@@ -50,9 +50,9 @@ const MostReadSection = () => {
                   {index + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-foreground line-clamp-3 group-hover:text-primary transition-colors">
+                  <span className="text-sm font-medium text-foreground line-clamp-3 group-hover:text-primary transition-colors block">
                     {post.title}
-                  </h3>
+                  </span>
                   <span className="text-xs text-muted-foreground mt-1 block">
                     {post.category}
                   </span>

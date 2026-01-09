@@ -20,7 +20,7 @@ const Footer = () => {
 
           {/* Categories */}
           <div>
-            <h3 className="font-bold text-background mb-4">Editorias</h3>
+            <h4 className="font-bold text-background mb-4">Editorias</h4>
             <ul className="grid grid-cols-2 gap-2">
               {categories.map((category) => (
                 <li key={category}>
@@ -37,7 +37,7 @@ const Footer = () => {
 
           {/* Info */}
           <div>
-            <h3 className="font-bold text-background mb-4">Institucional</h3>
+            <h4 className="font-bold text-background mb-4">Institucional</h4>
             <ul className="space-y-2">
               <li>
                 <Link to="/sobre" className="text-sm text-background/60 hover:text-primary transition-colors">

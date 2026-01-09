@@ -55,6 +55,9 @@ const OptimizedImage = ({
 
   const imageSrc = hasError ? fallbackSrc : src;
 
+  // Default aspect ratio for CLS optimization
+  const defaultAspectRatio = aspectRatio || "16/9";
+
   return (
     <div
       ref={imgRef}
@@ -62,7 +65,7 @@ const OptimizedImage = ({
         "relative overflow-hidden bg-muted",
         containerClassName
       )}
-      style={aspectRatio ? { aspectRatio } : undefined}
+      style={{ aspectRatio: defaultAspectRatio }}
     >
       {/* Placeholder skeleton */}
       {!isLoaded && (
@@ -81,7 +84,7 @@ const OptimizedImage = ({
           onLoad={handleLoad}
           onError={handleError}
           className={cn(
-            "transition-opacity duration-500 ease-out",
+            "transition-opacity duration-500 ease-out w-full h-full object-cover",
             isLoaded ? "opacity-100" : "opacity-0",
             className
           )}

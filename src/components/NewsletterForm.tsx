@@ -90,7 +90,7 @@ export const NewsletterForm = ({ variant = "default", className = "" }: Newslett
   if (variant === "footer") {
     return (
       <div className={className}>
-        <h3 className="font-bold text-background mb-3">Newsletter</h3>
+        <h4 className="font-bold text-background mb-3">Newsletter</h4>
         <p className="text-sm text-background/60 mb-4">
           Receba as principais notícias no seu e-mail.
         </p>
@@ -147,7 +147,7 @@ export const NewsletterForm = ({ variant = "default", className = "" }: Newslett
           <Mail className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h3 className="font-bold text-news-primary">Newsletter JG News</h3>
+          <span className="font-bold text-news-primary block">Newsletter JG News</span>
           <p className="text-sm text-news-muted">Receba as principais notícias no seu e-mail</p>
         </div>
       </div>

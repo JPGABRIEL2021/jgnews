@@ -23,16 +23,17 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
         >
           <OptimizedImage
             src={mainPost.cover_image}
-            alt={mainPost.title}
+            alt={`Imagem: ${mainPost.title}`}
+            aspectRatio="16/10"
             containerClassName="aspect-[16/9] lg:aspect-[16/10]"
             className="w-full h-full object-cover news-card-image"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8">
             <CategoryBadge category={mainPost.category} size="md" clickable={false} />
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-3 mb-2 group-hover:text-primary-foreground/90 transition-colors duration-300 line-clamp-4 sm:line-clamp-3 lg:line-clamp-none leading-tight">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-3 mb-2 group-hover:text-primary-foreground/90 transition-colors duration-300 line-clamp-4 sm:line-clamp-3 lg:line-clamp-none leading-tight">
               {mainPost.title}
-            </h1>
+            </h2>
             <p className="text-white/80 text-sm sm:text-base md:text-lg line-clamp-3 sm:line-clamp-2 mb-3 hidden sm:block transition-opacity duration-300 group-hover:text-white/90">
               {mainPost.excerpt}
             </p>
@@ -51,16 +52,17 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
             >
               <OptimizedImage
                 src={post.cover_image}
-                alt={post.title}
+                alt={`Imagem: ${post.title}`}
+                aspectRatio="16/9"
                 containerClassName="h-full min-h-[200px]"
                 className="w-full h-full object-cover news-card-image"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <CategoryBadge category={post.category} size="sm" clickable={false} />
-                <h2 className="text-base sm:text-lg md:text-xl font-bold text-white mt-2 line-clamp-3 group-hover:text-primary-foreground/90 transition-colors duration-300 leading-tight">
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mt-2 line-clamp-3 group-hover:text-primary-foreground/90 transition-colors duration-300 leading-tight">
                   {post.title}
-                </h2>
+                </h3>
                 <TimeAgo date={post.created_at} className="text-white/60 text-xs mt-2" />
               </div>
             </Link>

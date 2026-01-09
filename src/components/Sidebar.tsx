@@ -14,7 +14,7 @@ const Sidebar = ({ posts }: SidebarProps) => {
       <div className="bg-news-subtle rounded-lg p-4">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-news">
           <TrendingUp className="text-primary" size={20} />
-          <h2 className="text-lg font-bold text-news-primary">Mais Lidas</h2>
+          <h4 className="text-lg font-bold text-news-primary">Mais Lidas</h4>
         </div>
         <div>
           {posts.slice(0, 5).map((post, index) => (
