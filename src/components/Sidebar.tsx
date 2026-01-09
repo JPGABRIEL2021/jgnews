@@ -2,6 +2,7 @@ import { TrendingUp } from "lucide-react";
 import { Post } from "@/lib/posts";
 import NewsCard from "./NewsCard";
 import NewsletterForm from "./NewsletterForm";
+import AdBanner from "./AdBanner";
 
 interface SidebarProps {
   posts: Post[];
@@ -10,6 +11,9 @@ interface SidebarProps {
 const Sidebar = ({ posts }: SidebarProps) => {
   return (
     <aside className="lg:sticky lg:top-24 space-y-6">
+      {/* Ad Banner - Top Sidebar */}
+      <AdBanner format="rectangle" className="min-h-[250px] bg-muted/30 rounded-lg" />
+
       {/* Trending Section */}
       <div className="bg-news-subtle rounded-lg p-4">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-news">
@@ -30,8 +34,14 @@ const Sidebar = ({ posts }: SidebarProps) => {
         </div>
       </div>
 
+      {/* Ad Banner - Middle Sidebar */}
+      <AdBanner format="rectangle" className="min-h-[250px] bg-muted/30 rounded-lg" />
+
       {/* Newsletter Section */}
       <NewsletterForm />
+
+      {/* Ad Banner - Bottom Sidebar */}
+      <AdBanner format="vertical" className="min-h-[600px] bg-muted/30 rounded-lg" />
     </aside>
   );
 };

@@ -17,6 +17,7 @@ import TechNewsSection from "@/components/TechNewsSection";
 import SportsNewsSection from "@/components/SportsNewsSection";
 import MarketTicker from "@/components/MarketTicker";
 import MostReadSection from "@/components/MostReadSection";
+import AdBanner from "@/components/AdBanner";
 import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@/hooks/usePosts";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
@@ -87,11 +88,21 @@ const Index = () => {
           </div>
         ) : null}
 
+        {/* Ad Banner - Below Hero */}
+        <div className="container py-4">
+          <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
+        </div>
+
         {/* Most Read Section */}
         <MostReadSection />
 
         {/* Health News Section */}
         <HealthNewsSection />
+
+        {/* Ad Banner - Between Sections */}
+        <div className="container py-4">
+          <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
+        </div>
 
         {/* Tech News Section */}
         <TechNewsSection />
