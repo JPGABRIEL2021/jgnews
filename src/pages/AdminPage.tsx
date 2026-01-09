@@ -275,7 +275,7 @@ const AdminPage = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link to={`/admin/edit/${post.id}`} className="flex items-center gap-2">
+                            <Link to={`/admin/edit/${post.slug}`} className="flex items-center gap-2">
                               <Pencil size={14} />
                               Editar
                             </Link>

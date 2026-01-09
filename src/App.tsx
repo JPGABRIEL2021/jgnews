@@ -62,7 +62,7 @@ const App = () => (
               }
             />
             <Route
-              path="/admin/edit/:id"
+              path="/admin/edit/:slug"
               element={
                 <ProtectedRoute requireAdmin>
                   <PostEditorPage />

@@ -28,16 +28,16 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { useCreatePost, useUpdatePost, usePostById } from "@/hooks/usePosts";
+import { useCreatePost, useUpdatePost, usePost } from "@/hooks/usePosts";
 import { categories, PostInsert } from "@/lib/posts";
 import { toast } from "sonner";
 
 const PostEditorPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const isEditing = !!id;
+  const isEditing = !!slug;
 
-  const { data: existingPost, isLoading: loadingPost } = usePostById(id || "");
+  const { data: existingPost, isLoading: loadingPost } = usePost(slug || "");
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
 
@@ -113,8 +113,8 @@ const PostEditorPage = () => {
     }
 
     try {
-      if (isEditing && id) {
-        await updatePost.mutateAsync({ id, updates: formData });
+      if (isEditing && existingPost) {
+        await updatePost.mutateAsync({ id: existingPost.id, updates: formData });
       } else {
         await createPost.mutateAsync(formData);
       }
