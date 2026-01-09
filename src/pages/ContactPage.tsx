@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 
 const ContactPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,21 +53,13 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-news-primary">E-mail</h3>
-                  <a href="mailto:contato@jgnews.com.br" className="text-news-secondary hover:text-primary">
-                    contato@jgnews.com.br
+                  <a href="mailto:jptenorio.alves@gmail.com" className="text-news-secondary hover:text-primary">
+                    jptenorio.alves@gmail.com
                   </a>
                 </div>
               </div>
               
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Phone className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-news-primary">Telefone</h3>
-                  <p className="text-news-secondary">(11) 99999-9999</p>
-                </div>
-              </div>
+              {/* Phone section removed - no phone contact available */}
               
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-primary/10 rounded-lg">
