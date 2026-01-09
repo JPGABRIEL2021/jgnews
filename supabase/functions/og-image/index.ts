@@ -20,12 +20,13 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const slug = url.searchParams.get('slug');
+    const v = url.searchParams.get('v');
 
-    console.log('OG meta request for slug:', slug);
+    console.log('OG meta request for slug:', slug, 'v:', v);
 
     if (!slug) {
       console.log('No slug provided, returning default meta tags');
-      return generateHtmlResponse({
+      return generateHtmlResponse(req, {
         title: `${SITE_NAME} - Portal de Notícias`,
         description: DEFAULT_DESCRIPTION,
         image: DEFAULT_IMAGE,
@@ -48,7 +49,7 @@ serve(async (req) => {
 
     if (error || !post) {
       console.log('Post not found for slug:', slug, error?.message);
-      return generateHtmlResponse({
+      return generateHtmlResponse(req, {
         title: `Artigo não encontrado | ${SITE_NAME}`,
         description: DEFAULT_DESCRIPTION,
         image: DEFAULT_IMAGE,
@@ -60,19 +61,26 @@ serve(async (req) => {
     console.log('Found post:', post.title);
 
     // Ensure image URL is absolute
-    const imageUrl = post.cover_image?.startsWith('http') 
-      ? post.cover_image 
+    const imageUrl = post.cover_image?.startsWith('http')
+      ? post.cover_image
       : `${SITE_URL}${post.cover_image}`;
 
+    // Proxy the image through our own endpoint to avoid external blockers (WhatsApp crawlers)
+    // Force https in generated URLs (some environments provide req.url as http behind a proxy)
+    const originUrl = new URL(req.url);
+    originUrl.protocol = "https:";
+    const origin = originUrl.origin;
+    const proxiedImageUrl = `${origin}/functions/v1/image-proxy?url=${encodeURIComponent(imageUrl)}${v ? `&v=${encodeURIComponent(v)}` : ''}`;
+
     // Truncate description to 160 chars
-    const description = post.excerpt?.length > 160 
-      ? post.excerpt.substring(0, 157) + '...' 
+    const description = post.excerpt?.length > 160
+      ? post.excerpt.substring(0, 157) + '...'
       : post.excerpt || DEFAULT_DESCRIPTION;
 
-    return generateHtmlResponse({
+    return generateHtmlResponse(req, {
       title: `${post.title} | ${SITE_NAME}`,
       description,
-      image: imageUrl,
+      image: proxiedImageUrl,
       url: `${SITE_URL}/artigo/${slug}`,
       type: 'article',
       article: {
@@ -110,7 +118,7 @@ interface MetaData {
   };
 }
 
-function generateHtmlResponse(meta: MetaData): Response {
+function generateHtmlResponse(req: Request, meta: MetaData): Response {
   const articleTags = meta.article ? `
     <meta property="article:published_time" content="${meta.article.publishedTime}" />
     <meta property="article:modified_time" content="${meta.article.modifiedTime}" />
@@ -155,12 +163,20 @@ function generateHtmlResponse(meta: MetaData): Response {
 </body>
 </html>`;
 
+  const originUrl = new URL(req.url);
+  originUrl.protocol = "https:";
+  const origin = originUrl.origin;
+
   return new Response(html, {
     status: 200,
     headers: {
       ...corsHeaders,
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600',
+      // Some crawlers are picky; keep header lowercase.
+      "content-type": "text/html; charset=utf-8",
+      // Avoid CDN caching of HTML responses.
+      "cache-control": "no-store, max-age=0",
+      // Helps some scrapers identify the canonical host.
+      "x-content-base": origin,
     },
   });
 }
