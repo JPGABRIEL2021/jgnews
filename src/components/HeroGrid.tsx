@@ -3,12 +3,15 @@ import { Post } from "@/lib/posts";
 import CategoryBadge from "./CategoryBadge";
 import TimeAgo from "./TimeAgo";
 import OptimizedImage from "./OptimizedImage";
+import { useLinkPrefetch } from "@/hooks/usePrefetch";
 
 interface HeroGridProps {
   posts: Post[];
 }
 
 const HeroGrid = ({ posts }: HeroGridProps) => {
+  const { handleMouseEnter } = useLinkPrefetch();
+  
   if (posts.length < 3) return null;
 
   const [mainPost, ...sidePosts] = posts;
@@ -20,6 +23,8 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
         <Link
           to={`/post/${mainPost.slug}`}
           className="lg:col-span-2 group relative overflow-hidden rounded-lg news-card-hover animate-fade-in"
+          onMouseEnter={() => handleMouseEnter(mainPost.slug)}
+          onFocus={() => handleMouseEnter(mainPost.slug)}
         >
           <OptimizedImage
             src={mainPost.cover_image}
@@ -49,6 +54,8 @@ const HeroGrid = ({ posts }: HeroGridProps) => {
               to={`/post/${post.slug}`}
               className="group relative overflow-hidden rounded-lg news-card-hover flex-1 animate-fade-in"
               style={{ animationDelay: `${(index + 1) * 150}ms`, animationFillMode: 'backwards' }}
+              onMouseEnter={() => handleMouseEnter(post.slug)}
+              onFocus={() => handleMouseEnter(post.slug)}
             >
               <OptimizedImage
                 src={post.cover_image}
