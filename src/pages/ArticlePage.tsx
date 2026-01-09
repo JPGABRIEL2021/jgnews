@@ -9,6 +9,7 @@ import NewsCard from "@/components/NewsCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SEO from "@/components/SEO";
 import SensitiveImage from "@/components/SensitiveImage";
+import AdBanner from "@/components/AdBanner";
 import { usePost, usePosts, usePostsRealtime } from "@/hooks/usePosts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -150,6 +151,11 @@ const ArticlePage = () => {
             />
           </div>
 
+          {/* Ad Banner - Before Content */}
+          <div className="mb-8">
+            <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
+          </div>
+
           {/* Article Content - Sanitized to prevent XSS */}
           <div
             className="article-content"
@@ -160,6 +166,11 @@ const ArticlePage = () => {
               })
             }}
           />
+
+          {/* Ad Banner - After Content */}
+          <div className="my-8">
+            <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
+          </div>
 
           {/* Bottom Share */}
           <div className="mt-8 pt-6 border-t border-news">
