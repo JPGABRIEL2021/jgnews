@@ -18,8 +18,8 @@ interface SEOProps {
 
 const SITE_NAME = "JG News";
 const DEFAULT_DESCRIPTION = "Portal de notícias com as últimas atualizações em política, economia, esportes, tecnologia e entretenimento. Notícias em tempo real 24 horas.";
-const DEFAULT_IMAGE = "/pwa-512x512.png";
-const SITE_URL = typeof window !== "undefined" ? window.location.origin : "";
+const DEFAULT_IMAGE = "https://jgnews.com.br/pwa-512x512.png";
+const SITE_URL = "https://jgnews.com.br";
 
 const SEO = ({
   title,
@@ -118,6 +118,9 @@ const SEO = ({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={truncatedDescription} />
       <meta property="og:image" content={fullImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:type" content="image/jpeg" />
       <meta property="og:url" content={fullUrl} />
       <meta property="og:locale" content="pt_BR" />
       
@@ -140,6 +143,7 @@ const SEO = ({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={truncatedDescription} />
       <meta name="twitter:image" content={fullImage} />
+      <meta name="twitter:image:alt" content={title || SITE_NAME} />
       
       {/* Schema.org JSON-LD */}
       <script type="application/ld+json">
