@@ -135,9 +135,10 @@ export const useCreatePost = () => {
 
   return useMutation({
     mutationFn: (post: PostInsert) => createPost(post),
-    onSuccess: () => {
+    onSuccess: (createdPost) => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       toast.success("Notícia criada com sucesso!");
+      return createdPost;
     },
     onError: (error) => {
       toast.error("Erro ao criar notícia: " + error.message);
