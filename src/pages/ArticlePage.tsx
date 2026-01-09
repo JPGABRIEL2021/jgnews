@@ -59,6 +59,13 @@ const ArticlePage = () => {
     locale: ptBR,
   });
 
+  const siteUrl = "https://jgnews.com.br";
+  const breadcrumbs = [
+    { name: "Início", url: siteUrl },
+    { name: post.category, url: `${siteUrl}/categoria/${encodeURIComponent(post.category.toLowerCase())}` },
+    { name: post.title, url: `${siteUrl}/post/${post.slug}` },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
@@ -74,6 +81,7 @@ const ArticlePage = () => {
         }}
         keywords={`${post.category}, notícias, ${post.title.split(" ").slice(0, 5).join(", ")}`}
         preloadImage={true}
+        breadcrumbs={breadcrumbs}
       />
       <Header />
 

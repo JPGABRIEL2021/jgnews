@@ -1,5 +1,10 @@
 import { Helmet } from "react-helmet-async";
 
+interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
 interface SEOProps {
   title?: string;
   description?: string;
@@ -15,6 +20,7 @@ interface SEOProps {
   };
   noindex?: boolean;
   preloadImage?: boolean;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
 const SITE_NAME = "JG News";
@@ -33,6 +39,7 @@ const SEO = ({
   article,
   noindex = false,
   preloadImage = false,
+  breadcrumbs,
 }: SEOProps) => {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - Portal de Notícias`;
   const currentUrl = typeof window !== "undefined" ? window.location.href : SITE_URL;
@@ -116,6 +123,20 @@ const SEO = ({
       }
     : null;
 
+  // BreadcrumbList Schema
+  const breadcrumbSchema = breadcrumbs && breadcrumbs.length > 0
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: breadcrumbs.map((item, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: item.name,
+          item: item.url,
+        })),
+      }
+    : null;
+
   // Preload hero image URL for LCP optimization
   const preloadImageUrl = preloadImage && image !== DEFAULT_IMAGE ? image : null;
 
@@ -186,6 +207,13 @@ const SEO = ({
       {newsArticleSchema && (
         <script type="application/ld+json">
           {JSON.stringify(newsArticleSchema)}
+        </script>
+      )}
+      
+      {/* Schema.org JSON-LD - BreadcrumbList */}
+      {breadcrumbSchema && (
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbSchema)}
         </script>
       )}
     </Helmet>
