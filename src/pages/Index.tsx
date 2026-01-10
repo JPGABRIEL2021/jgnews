@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import Header from "@/components/Header";
-import HeroGrid from "@/components/HeroGrid";
+import GloboStyleGrid from "@/components/GloboStyleGrid";
 import HeroGridSkeleton from "@/components/HeroGridSkeleton";
 import NewsFeedInfinite from "@/components/NewsFeedInfinite";
 import Sidebar from "@/components/Sidebar";
@@ -34,7 +34,15 @@ const Index = () => {
   const { data: allPosts = [], isLoading: loadingPosts } = usePosts();
   const { data: breakingNews = [] } = useBreakingNews();
 
-  const nonFeaturedPosts = allPosts.filter(post => !post.is_featured && !post.is_breaking);
+  // Pegar os primeiros posts para o grid principal (featured + alguns recentes)
+  const heroGridPosts = featuredPosts.length >= 3 
+    ? featuredPosts.slice(0, 7) 
+    : allPosts.slice(0, 7);
+  
+  // Posts restantes para o feed
+  const heroPostIds = new Set(heroGridPosts.map(p => p.id));
+  const nonHeroPosts = allPosts.filter(post => !heroPostIds.has(post.id) && !post.is_breaking);
+  
   const isLoading = loadingFeatured || loadingPosts;
 
   const handleRefresh = useCallback(async () => {
@@ -75,21 +83,21 @@ const Index = () => {
       <MarketTicker />
       
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* Hero Section - Estilo Globo */}
         {isLoading ? (
           <HeroGridSkeleton />
-        ) : featuredPosts.length >= 3 ? (
-          <HeroGrid posts={featuredPosts} />
-        ) : featuredPosts.length > 0 ? (
+        ) : heroGridPosts.length >= 3 ? (
+          <GloboStyleGrid posts={heroGridPosts} />
+        ) : heroGridPosts.length > 0 ? (
           <div className="container py-6">
             <p className="text-news-muted text-center">
-              Marque pelo menos 3 notícias como destaque para exibir o Hero Grid
+              Adicione mais notícias para exibir o grid completo
             </p>
           </div>
         ) : null}
 
         {/* Ad Banner - Below Hero */}
-        <div className="container py-4">
+        <div className="container py-3">
           <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
         </div>
 
@@ -100,7 +108,7 @@ const Index = () => {
         <HealthNewsSection />
 
         {/* Ad Banner - Between Sections */}
-        <div className="container py-4">
+        <div className="container py-3">
           <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
         </div>
 
@@ -122,7 +130,7 @@ const Index = () => {
                   ))}
                 </div>
               ) : (
-                <NewsFeedInfinite posts={nonFeaturedPosts} />
+                <NewsFeedInfinite posts={nonHeroPosts} />
               )}
             </div>
 
