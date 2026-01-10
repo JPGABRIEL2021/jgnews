@@ -1,5 +1,13 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calendar, User, ExternalLink } from "lucide-react";
+import { Calendar, User, ExternalLink, Home, ChevronRight } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import DOMPurify from "dompurify";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -85,15 +93,41 @@ const ArticlePage = () => {
       <Header />
 
       <main className="flex-1">
-        {/* Back Link */}
+        {/* Visual Breadcrumbs */}
         <div className="container py-4">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm text-news-muted hover:text-primary transition-colors"
-          >
-            <ArrowLeft size={16} />
-            Voltar para início
-          </Link>
+          <Breadcrumb>
+            <BreadcrumbList className="text-sm">
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                    <Home size={14} />
+                    <span>Início</span>
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>
+                <ChevronRight size={14} />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link 
+                    to={`/categoria/${encodeURIComponent(post.category.toLowerCase())}`}
+                    className="hover:text-primary transition-colors capitalize"
+                  >
+                    {post.category}
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>
+                <ChevronRight size={14} />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbPage className="line-clamp-1 max-w-[200px] md:max-w-[400px]">
+                  {post.title}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
 
         <article className="container max-w-4xl pb-12">
