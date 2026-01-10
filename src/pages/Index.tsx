@@ -15,6 +15,8 @@ import { CookieConsent } from "@/components/CookieConsent";
 import ThematicSection from "@/components/ThematicSection";
 import MarketTicker from "@/components/MarketTicker";
 import MostReadSection from "@/components/MostReadSection";
+import MobileCategoryBar from "@/components/MobileCategoryBar";
+import NewsletterPopup from "@/components/NewsletterPopup";
 import AdBanner from "@/components/AdBanner";
 import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@/hooks/usePosts";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
@@ -85,6 +87,9 @@ const Index = () => {
       )}
       
       <Header />
+
+      {/* Mobile Category Bar - Sticky navigation */}
+      <MobileCategoryBar />
 
       {/* Market Ticker */}
       <MarketTicker />
@@ -219,6 +224,9 @@ const Index = () => {
 
       {/* PWA Install Banner */}
       <PWAInstallBanner />
+
+      {/* Newsletter Popup - Smart timing */}
+      <NewsletterPopup />
 
       {/* Cookie Consent Banner */}
       <CookieConsent />
