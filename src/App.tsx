@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RedirectByIdToSlug from "./components/RedirectByIdToSlug";
 import CookieConsent from "./components/CookieConsent";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,65 +33,67 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="bottom-right" />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/post/:slug" element={<ArticlePage />} />
-            <Route path="/category/:name" element={<CategoryPage />} />
-            <Route path="/categorias" element={<CategoriesPage />} />
-            <Route path="/sobre" element={<AboutPage />} />
-            <Route path="/contato" element={<ContactPage />} />
-            <Route path="/privacidade" element={<PrivacyPage />} />
-            <Route path="/termos" element={<TermsPage />} />
-            <Route path="/busca" element={<SearchPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/new"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <PostEditorPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/edit/:slug"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <PostEditorPage />
-                </ProtectedRoute>
-              }
-            />
-            {/* Redirects for old ID-based URLs */}
-            <Route
-              path="/admin/edit-by-id/:id"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <RedirectByIdToSlug basePath="/admin/edit" />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/post-by-id/:id"
-              element={<RedirectByIdToSlug basePath="/post" />}
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <CookieConsent />
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="light" storageKey="jgnews-theme">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="bottom-right" />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/post/:slug" element={<ArticlePage />} />
+              <Route path="/category/:name" element={<CategoryPage />} />
+              <Route path="/categorias" element={<CategoriesPage />} />
+              <Route path="/sobre" element={<AboutPage />} />
+              <Route path="/contato" element={<ContactPage />} />
+              <Route path="/privacidade" element={<PrivacyPage />} />
+              <Route path="/termos" element={<TermsPage />} />
+              <Route path="/busca" element={<SearchPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/new"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <PostEditorPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/edit/:slug"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <PostEditorPage />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Redirects for old ID-based URLs */}
+              <Route
+                path="/admin/edit-by-id/:id"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <RedirectByIdToSlug basePath="/admin/edit" />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/post-by-id/:id"
+                element={<RedirectByIdToSlug basePath="/post" />}
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <CookieConsent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </HelmetProvider>
 );
 

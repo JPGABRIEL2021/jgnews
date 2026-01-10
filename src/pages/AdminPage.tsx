@@ -59,6 +59,7 @@ import { Post } from "@/lib/posts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTheme } from "@/components/ThemeProvider";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -66,19 +67,12 @@ const AdminPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
 
-  // Theme state
-  const [isDarkMode, setIsDarkMode] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
+  // Theme state from global provider
+  const { theme, setTheme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-    if (newTheme) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    setTheme(isDarkMode ? "light" : "dark");
   };
 
   const { user, signOut } = useAuth();
