@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Sparkles, Loader2, X, Check, FileText, Search, Edit3, ExternalLink, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import DOMPurify from "dompurify";
 import { Input } from "@/components/ui/input";
 import { categories } from "@/lib/posts";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,7 +70,7 @@ const NEWS_SOURCES = [
 
 const AINewsGenerator = () => {
   const queryClient = useQueryClient();
-  
+
   // Generate tab state
   const [topic, setTopic] = useState("");
   const [category, setCategory] = useState("Geral");
@@ -181,10 +182,10 @@ const AINewsGenerator = () => {
 
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
-          
+
           try {
             const data = JSON.parse(line.slice(6));
-            
+
             if (data.type === "delta") {
               setStreamedText((prev) => {
                 const newText = prev + data.content;
@@ -247,7 +248,7 @@ const AINewsGenerator = () => {
 
       setSearchResults(data.results || []);
       setShowSearchResults(true);
-      
+
       if (data.results?.length === 0) {
         toast.info("Nenhuma notícia encontrada");
       } else {
@@ -407,9 +408,9 @@ const AINewsGenerator = () => {
                     Imagem Sensível (blur para AdSense)
                   </Label>
                 </div>
-                
-                <Button 
-                  onClick={handleGenerate} 
+
+                <Button
+                  onClick={handleGenerate}
                   disabled={isGenerating || !topic.trim()}
                   className="gap-2 h-10"
                 >
@@ -458,8 +459,8 @@ const AINewsGenerator = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button 
-                onClick={handleSearch} 
+              <Button
+                onClick={handleSearch}
                 disabled={isSearching || !searchQuery.trim()}
                 className="gap-2 h-10"
               >
@@ -494,8 +495,8 @@ const AINewsGenerator = () => {
                   disabled={isRevising}
                 />
               </div>
-              <Button 
-                onClick={handleRevise} 
+              <Button
+                onClick={handleRevise}
                 disabled={isRevising || !textToRevise.trim()}
                 className="gap-2"
               >
@@ -588,9 +589,9 @@ const AINewsGenerator = () => {
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Conteúdo</label>
                 <div className="p-4 bg-muted/50 rounded-md min-h-[200px]">
                   {parsedContent.content ? (
-                    <div 
+                    <div
                       className="prose prose-sm max-w-none dark:prose-invert"
-                      dangerouslySetInnerHTML={{ __html: parsedContent.content }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(parsedContent.content) }}
                     />
                   ) : (
                     <div className="space-y-3">
@@ -650,7 +651,7 @@ const AINewsGenerator = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(result.url, "_blank")}
+                        onClick={() => window.open(result.url, "_blank", "noopener,noreferrer")}
                         className="gap-1"
                       >
                         <ExternalLink size={14} />
@@ -764,7 +765,7 @@ const AINewsGenerator = () => {
                       {revisedText.split(/\s+/).map((word, idx) => {
                         const isNew = revisionChanges.some(
                           change => change.revised.toLowerCase().includes(word.toLowerCase()) &&
-                                   !change.original.toLowerCase().includes(word.toLowerCase())
+                            !change.original.toLowerCase().includes(word.toLowerCase())
                         );
                         return (
                           <span

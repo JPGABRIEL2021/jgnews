@@ -301,7 +301,7 @@ const AdminPage = () => {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link to={`/post/${post.slug}`} className="flex items-center gap-2" target="_blank">
+                            <Link to={`/post/${post.slug}`} className="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                               Ver no site
                             </Link>
                           </DropdownMenuItem>
