@@ -12,21 +12,19 @@ interface ShareButtonsProps {
 const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
   const [copied, setCopied] = useState(false);
 
-  // Use OG image edge function URL for social sharing (crawlers will get proper meta tags)
-  // Cache-busting param to avoid WhatsApp/Facebook keeping an old preview
-  const cacheBuster = Date.now().toString(36);
-  const SUPABASE_PROJECT_ID = "ixfgtcxthdjjftsltlrk";
-  const ogUrl = slug
-    ? `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/og-image?slug=${encodeURIComponent(slug)}&v=${cacheBuster}`
-    : url;
+  // Use the actual site URL for sharing to keep it professional and user-friendly.
+  // Note: To have the dynamic image preview work with this URL, the domain hosting 
+  // (e.g. Netlify/Vercel) must be configured to proxy crawlers to the og-image function.
+  const siteUrl = "https://jgnews.com.br";
+  const postUrl = slug ? `${siteUrl}/post/${slug}` : url;
 
-  const shareUrl = encodeURIComponent(ogUrl);
+  const shareUrl = encodeURIComponent(postUrl);
   const shareTitle = encodeURIComponent(title);
 
   const handleCopyLink = async () => {
     try {
-      // Copy the sharing URL (the one with OG tags) to preserve preview.
-      await navigator.clipboard.writeText(ogUrl);
+      // Copy the sharing URL to preserved preview.
+      await navigator.clipboard.writeText(postUrl);
       setCopied(true);
       toast.success("Link de compartilhamento copiado!");
       setTimeout(() => setCopied(false), 2000);
