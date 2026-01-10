@@ -216,9 +216,9 @@ const GloboStyleGrid = ({ posts }: GloboStyleGridProps) => {
   const mobilePosts = posts.slice(1, 5);
 
   return (
-    <section className="container py-4 md:py-6">
+    <section className="py-4 md:py-6">
       {/* Desktop Layout */}
-      <div className="hidden md:block">
+      <div className="hidden md:block container">
         {/* Grid Principal */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Coluna Principal (2/3) */}
@@ -261,28 +261,70 @@ const GloboStyleGrid = ({ posts }: GloboStyleGridProps) => {
         )}
       </div>
 
-      {/* Mobile Layout - Vertical Stack */}
-      <div className="md:hidden">
+      {/* Mobile Layout - Full width cards */}
+      <div className="md:hidden space-y-3 px-3">
         {/* Destaque Principal */}
-        <MainCard 
-          post={mainPost}
-          isRevealed={revealedPosts.has(mainPost.id)}
-          onReveal={() => revealPost(mainPost.id)}
-          handleMouseEnter={handleMouseEnter}
-        />
-
-        {/* Lista de Notícias */}
-        <div className="mt-4 bg-card rounded-lg border border-border px-3">
-          {mobilePosts.map((post) => (
-            <MobileListCard
-              key={post.id}
-              post={post}
-              isRevealed={revealedPosts.has(post.id)}
-              onReveal={() => revealPost(post.id)}
-              handleMouseEnter={handleMouseEnter}
+        <Link
+          to={`/post/${mainPost.slug}`}
+          className="group relative overflow-hidden rounded-lg block"
+          onMouseEnter={() => handleMouseEnter(mainPost.slug)}
+          onFocus={() => handleMouseEnter(mainPost.slug)}
+        >
+          <div className="relative">
+            <OptimizedImage
+              src={mainPost.cover_image}
+              alt={`Imagem: ${mainPost.title}`}
+              aspectRatio="16/9"
+              containerClassName={`aspect-[16/9] ${mainPost.is_sensitive && !revealedPosts.has(mainPost.id) ? 'blur-xl scale-110' : ''}`}
+              className="w-full h-full object-cover"
             />
-          ))}
-        </div>
+            {mainPost.is_sensitive && !revealedPosts.has(mainPost.id) && <SensitiveOverlay onReveal={() => revealPost(mainPost.id)} />}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <span className="inline-block text-xs font-semibold text-primary bg-white/95 px-2 py-0.5 rounded mb-2">
+                {mainPost.category}
+              </span>
+              <h2 className="text-lg font-bold text-white leading-tight line-clamp-3">
+                {mainPost.title}
+              </h2>
+              <TimeAgo date={mainPost.created_at} className="text-white/50 text-xs mt-2" />
+            </div>
+          </div>
+        </Link>
+
+        {/* Outros posts empilhados */}
+        {mobilePosts.map((post) => {
+          const showBlur = post.is_sensitive && !revealedPosts.has(post.id);
+          return (
+            <Link
+              key={post.id}
+              to={`/post/${post.slug}`}
+              className="group relative overflow-hidden rounded-lg block"
+              onMouseEnter={() => handleMouseEnter(post.slug)}
+              onFocus={() => handleMouseEnter(post.slug)}
+            >
+              <div className="relative">
+                <OptimizedImage
+                  src={post.cover_image}
+                  alt={`Imagem: ${post.title}`}
+                  aspectRatio="16/9"
+                  containerClassName={`aspect-[16/9] ${showBlur ? 'blur-xl scale-110' : ''}`}
+                  className="w-full h-full object-cover"
+                />
+                {showBlur && <SensitiveOverlay onReveal={() => revealPost(post.id)} />}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <span className="inline-block text-[10px] font-semibold text-primary bg-white/95 px-1.5 py-0.5 rounded mb-1.5">
+                    {post.category}
+                  </span>
+                  <h3 className="text-sm font-semibold text-white line-clamp-2 leading-tight">
+                    {post.title}
+                  </h3>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
