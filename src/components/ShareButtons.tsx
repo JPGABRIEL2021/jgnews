@@ -1,4 +1,4 @@
-import { MessageCircle, Twitter, Link as LinkIcon, Check, Facebook, RefreshCw } from "lucide-react";
+import { MessageCircle, Twitter, Link as LinkIcon, Check, Facebook } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -37,15 +37,6 @@ const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
     } catch {
       toast.error("Erro ao copiar link");
     }
-  };
-
-  const handleClearCache = () => {
-    // Facebook Sharing Debugger is the most effective way to clear cache for FB and WhatsApp
-    const debuggerUrl = `https://developers.facebook.com/tools/debug/sharing/?q=${encodeURIComponent(postUrl)}`;
-    window.open(debuggerUrl, "_blank");
-    toast.info("Abrindo Depurador do Facebook", {
-      description: "Clique em 'Scrape Again' (Obter novas informações) na página que abrir.",
-    });
   };
 
   return (
@@ -120,8 +111,8 @@ const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
               size="sm"
               onClick={handleCopyLink}
               className={`h-9 gap-2 transition-all duration-300 ${copied
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "text-news-muted hover:text-news-primary"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "text-news-muted hover:text-news-primary"
                 }`}
             >
               {copied ? (
@@ -138,25 +129,6 @@ const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
             </Button>
           </TooltipTrigger>
           <TooltipContent>Copiar link para a área de transferência</TooltipContent>
-        </Tooltip>
-
-        <div className="h-6 w-px bg-news ml-1" />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearCache}
-              className="text-news-muted hover:text-primary gap-1.5 h-9"
-            >
-              <RefreshCw size={14} className="animate-hover-spin" />
-              <span className="text-[10px] uppercase tracking-wider font-bold">Limpar Cache</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            Forçar atualização da imagem no WhatsApp/Facebook
-          </TooltipContent>
         </Tooltip>
       </div>
     </TooltipProvider>
