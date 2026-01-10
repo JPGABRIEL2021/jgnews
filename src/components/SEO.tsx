@@ -45,16 +45,16 @@ const SEO = ({
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - Portal de Notícias`;
   const currentUrl = typeof window !== "undefined" ? window.location.href : SITE_URL;
   const fullUrl = url || currentUrl;
-  
+
   // Ensure canonical URL is clean (no trailing slashes except for root, no query params)
   const cleanUrl = fullUrl.split("?")[0].replace(/\/$/, "") || SITE_URL;
   const canonicalUrl = cleanUrl === SITE_URL ? SITE_URL + "/" : cleanUrl;
-  
+
   const fullImage = image.startsWith("http") ? image : `${SITE_URL}${image}`;
 
   // Truncate description to 160 chars for SEO
-  const truncatedDescription = description.length > 160 
-    ? description.substring(0, 157) + "..." 
+  const truncatedDescription = description.length > 160
+    ? description.substring(0, 157) + "..."
     : description;
 
   // Publisher object for NewsArticle schema
@@ -94,7 +94,7 @@ const SEO = ({
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${SITE_URL}/pesquisa?q={search_term_string}`,
+        urlTemplate: `${SITE_URL}/busca?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },
@@ -103,44 +103,44 @@ const SEO = ({
   // NewsArticle Schema (Schema.org standard)
   const newsArticleSchema = article
     ? {
-        "@context": "https://schema.org",
-        "@type": "NewsArticle",
-        mainEntityOfPage: {
-          "@type": "WebPage",
-          "@id": fullUrl,
-        },
-        headline: title?.substring(0, 110) || SITE_NAME, // Google recommends max 110 chars
-        description: truncatedDescription,
-        image: {
-          "@type": "ImageObject",
-          url: fullImage,
-          width: 1200,
-          height: 630,
-        },
-        datePublished: article.publishedTime,
-        dateModified: article.modifiedTime || article.publishedTime,
-        author: {
-          "@type": "Person",
-          name: article.author || "JG News",
-        },
-        publisher: publisherSchema,
-        articleSection: article.category,
-        inLanguage: "pt-BR",
-      }
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": fullUrl,
+      },
+      headline: title?.substring(0, 110) || SITE_NAME, // Google recommends max 110 chars
+      description: truncatedDescription,
+      image: {
+        "@type": "ImageObject",
+        url: fullImage,
+        width: 1200,
+        height: 630,
+      },
+      datePublished: article.publishedTime,
+      dateModified: article.modifiedTime || article.publishedTime,
+      author: {
+        "@type": "Person",
+        name: article.author || "JG News",
+      },
+      publisher: publisherSchema,
+      articleSection: article.category,
+      inLanguage: "pt-BR",
+    }
     : null;
 
   // BreadcrumbList Schema
   const breadcrumbSchema = breadcrumbs && breadcrumbs.length > 0
     ? {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: breadcrumbs.map((item, index) => ({
-          "@type": "ListItem",
-          position: index + 1,
-          name: item.name,
-          item: item.url,
-        })),
-      }
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: breadcrumbs.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        item: item.url,
+      })),
+    }
     : null;
 
   // Preload hero image URL for LCP optimization
@@ -150,22 +150,22 @@ const SEO = ({
     <Helmet>
       {/* Preload hero image for LCP optimization */}
       {preloadImageUrl && (
-        <link 
-          rel="preload" 
-          as="image" 
+        <link
+          rel="preload"
+          as="image"
           href={preloadImageUrl}
         />
       )}
-      
+
       {/* Basic Meta Tags - unique per page */}
       <title>{fullTitle}</title>
       <meta name="description" content={truncatedDescription} />
       <meta name="keywords" content={keywords} />
       <meta name="author" content={article?.author || "JG News"} />
       <link rel="canonical" href={canonicalUrl} />
-      
+
       {noindex && <meta name="robots" content="noindex, nofollow" />}
-      
+
       {/* Open Graph - unique per page */}
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content={SITE_NAME} />
@@ -178,7 +178,7 @@ const SEO = ({
       <meta property="og:image:alt" content={title || SITE_NAME} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:locale" content="pt_BR" />
-      
+
       {/* Article specific OG tags */}
       {article?.publishedTime && (
         <meta property="article:published_time" content={article.publishedTime} />
@@ -195,7 +195,7 @@ const SEO = ({
       {article && (
         <meta property="article:publisher" content={SITE_URL} />
       )}
-      
+
       {/* Twitter Card - unique per page */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content={TWITTER_HANDLE} />
@@ -205,24 +205,24 @@ const SEO = ({
       <meta name="twitter:image" content={fullImage} />
       <meta name="twitter:image:alt" content={title || SITE_NAME} />
       <meta name="twitter:domain" content="jgnews.com.br" />
-      
+
       {/* Schema.org JSON-LD - Organization */}
       <script type="application/ld+json">
         {JSON.stringify(organizationSchema)}
       </script>
-      
+
       {/* Schema.org JSON-LD - WebSite */}
       <script type="application/ld+json">
         {JSON.stringify(websiteSchema)}
       </script>
-      
+
       {/* Schema.org JSON-LD - NewsArticle (only for articles) */}
       {newsArticleSchema && (
         <script type="application/ld+json">
           {JSON.stringify(newsArticleSchema)}
         </script>
       )}
-      
+
       {/* Schema.org JSON-LD - BreadcrumbList */}
       {breadcrumbSchema && (
         <script type="application/ld+json">

@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://jgnews.com.br";
+const SITE_NAME = "JG News";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -21,7 +22,7 @@ Deno.serve(async (req) => {
     // Fetch all published posts
     const { data: posts, error } = await supabase
       .from("posts")
-      .select("slug, updated_at, category")
+      .select("slug, title, updated_at, category")
       .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
       .order("created_at", { ascending: false });
 
@@ -83,14 +84,34 @@ Deno.serve(async (req) => {
 
     // Add article pages
     if (posts && posts.length > 0) {
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
       for (const post of posts) {
-        const lastmod = new Date(post.updated_at).toISOString().split("T")[0];
+        const publishedDate = new Date(post.updated_at);
+        const lastmod = publishedDate.toISOString().split("T")[0];
+        const isRecent = publishedDate > twoDaysAgo;
+
         xml += `  <url>
     <loc>${SITE_URL}/post/${post.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>
+`;
+
+        if (isRecent) {
+          xml += `    <news:news>
+      <news:publication>
+        <news:name>${SITE_NAME}</news:name>
+        <news:language>pt</news:language>
+      </news:publication>
+      <news:publication_date>${publishedDate.toISOString()}</news:publication_date>
+      <news:title>${post.title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</news:title>
+    </news:news>
+`;
+        }
+
+        xml += `  </url>
 `;
       }
     }
