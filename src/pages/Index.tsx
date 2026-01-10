@@ -12,9 +12,7 @@ import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import SEO from "@/components/SEO";
 import { CookieConsent } from "@/components/CookieConsent";
-import HealthNewsSection from "@/components/HealthNewsSection";
-import TechNewsSection from "@/components/TechNewsSection";
-import SportsNewsSection from "@/components/SportsNewsSection";
+import ThematicSection from "@/components/ThematicSection";
 import MarketTicker from "@/components/MarketTicker";
 import MostReadSection from "@/components/MostReadSection";
 import AdBanner from "@/components/AdBanner";
@@ -22,6 +20,15 @@ import { useFeaturedPosts, usePosts, useBreakingNews, usePostsRealtime } from "@
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { 
+  Landmark, 
+  TrendingUp, 
+  Cpu, 
+  Trophy, 
+  Heart, 
+  Globe2, 
+  Film 
+} from "lucide-react";
 
 const Index = () => {
   const [showBreaking, setShowBreaking] = useState(true);
@@ -90,7 +97,7 @@ const Index = () => {
           <GloboStyleGrid posts={heroGridPosts} />
         ) : heroGridPosts.length > 0 ? (
           <div className="container py-6">
-            <p className="text-news-muted text-center">
+            <p className="text-muted-foreground text-center">
               Adicione mais notícias para exibir o grid completo
             </p>
           </div>
@@ -104,22 +111,88 @@ const Index = () => {
         {/* Most Read Section */}
         <MostReadSection />
 
-        {/* Health News Section */}
-        <HealthNewsSection />
+        {/* Separator */}
+        <div className="container">
+          <div className="h-px bg-border" />
+        </div>
 
-        {/* Ad Banner - Between Sections */}
+        {/* Thematic Sections - Estilo Globo */}
+        <ThematicSection 
+          category="Política" 
+          icon={Landmark} 
+          color="bg-blue-600"
+          bgGradient="bg-gradient-to-b from-blue-50/30 to-transparent dark:from-blue-950/10"
+        />
+
+        <div className="container">
+          <div className="h-px bg-border" />
+        </div>
+
+        <ThematicSection 
+          category="Economia" 
+          icon={TrendingUp} 
+          color="bg-amber-600"
+          bgGradient="bg-gradient-to-b from-amber-50/30 to-transparent dark:from-amber-950/10"
+        />
+
+        {/* Ad Banner */}
         <div className="container py-3">
           <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
         </div>
 
-        {/* Tech News Section */}
-        <TechNewsSection />
+        <ThematicSection 
+          category="Tecnologia" 
+          icon={Cpu} 
+          color="bg-cyan-600"
+          bgGradient="bg-gradient-to-b from-cyan-50/30 to-transparent dark:from-cyan-950/10"
+        />
 
-        {/* Sports News Section */}
-        <SportsNewsSection />
+        <div className="container">
+          <div className="h-px bg-border" />
+        </div>
+
+        <ThematicSection 
+          category="Esportes" 
+          icon={Trophy} 
+          color="bg-green-600"
+          bgGradient="bg-gradient-to-b from-green-50/30 to-transparent dark:from-green-950/10"
+        />
+
+        <div className="container">
+          <div className="h-px bg-border" />
+        </div>
+
+        <ThematicSection 
+          category="Saúde" 
+          icon={Heart} 
+          color="bg-rose-600"
+          bgGradient="bg-gradient-to-b from-rose-50/30 to-transparent dark:from-rose-950/10"
+        />
+
+        <div className="container">
+          <div className="h-px bg-border" />
+        </div>
+
+        <ThematicSection 
+          category="Internacional" 
+          icon={Globe2} 
+          color="bg-slate-600"
+          bgGradient="bg-gradient-to-b from-slate-50/30 to-transparent dark:from-slate-950/10"
+        />
+
+        <div className="container">
+          <div className="h-px bg-border" />
+        </div>
+
+        <ThematicSection 
+          category="Entretenimento" 
+          icon={Film} 
+          color="bg-purple-600"
+          bgGradient="bg-gradient-to-b from-purple-50/30 to-transparent dark:from-purple-950/10"
+        />
 
         {/* Content Grid */}
-        <div className="container pb-8">
+        <div className="container py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
