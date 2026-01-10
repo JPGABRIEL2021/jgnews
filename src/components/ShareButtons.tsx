@@ -15,8 +15,9 @@ const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
   // Use OG image edge function URL for social sharing (crawlers will get proper meta tags)
   // Cache-busting param to avoid WhatsApp/Facebook keeping an old preview
   const cacheBuster = Date.now().toString(36);
+  const SUPABASE_PROJECT_ID = "ixfgtcxthdjjftsltlrk";
   const ogUrl = slug
-    ? `https://ixfgtcxthdjjftsltlrk.supabase.co/functions/v1/og-image?slug=${encodeURIComponent(slug)}&v=${cacheBuster}`
+    ? `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/og-image?slug=${encodeURIComponent(slug)}&v=${cacheBuster}`
     : url;
 
   const shareUrl = encodeURIComponent(ogUrl);
@@ -37,7 +38,7 @@ const ShareButtons = ({ title, url, slug }: ShareButtonsProps) => {
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm text-news-muted font-medium">Compartilhar:</span>
-      
+
       <Button
         variant="outline"
         size="sm"

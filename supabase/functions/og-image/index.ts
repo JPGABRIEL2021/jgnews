@@ -53,7 +53,7 @@ serve(async (req) => {
         title: `Artigo não encontrado | ${SITE_NAME}`,
         description: DEFAULT_DESCRIPTION,
         image: DEFAULT_IMAGE,
-        url: `${SITE_URL}/artigo/${slug}`,
+        url: `${SITE_URL}/post/${slug}`,
         type: 'article',
       });
     }
@@ -65,12 +65,7 @@ serve(async (req) => {
       ? post.cover_image
       : `${SITE_URL}${post.cover_image}`;
 
-    // Proxy the image through our own endpoint to avoid external blockers (WhatsApp crawlers)
-    // Force https in generated URLs (some environments provide req.url as http behind a proxy)
-    const originUrl = new URL(req.url);
-    originUrl.protocol = "https:";
-    const origin = originUrl.origin;
-    const proxiedImageUrl = `${origin}/functions/v1/image-proxy?url=${encodeURIComponent(imageUrl)}${v ? `&v=${encodeURIComponent(v)}` : ''}`;
+    const finalImageUrl = imageUrl;
 
     // Truncate description to 160 chars
     const description = post.excerpt?.length > 160
@@ -80,8 +75,8 @@ serve(async (req) => {
     return generateHtmlResponse(req, {
       title: `${post.title} | ${SITE_NAME}`,
       description,
-      image: proxiedImageUrl,
-      url: `${SITE_URL}/artigo/${slug}`,
+      image: finalImageUrl,
+      url: `${SITE_URL}/post/${slug}`,
       type: 'article',
       article: {
         publishedTime: post.created_at,
