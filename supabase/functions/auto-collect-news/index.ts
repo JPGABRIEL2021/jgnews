@@ -21,14 +21,14 @@ async function authenticateAdmin(req: Request): Promise<{ error?: Response; user
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  
+
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } }
   });
 
   const token = authHeader.replace("Bearer ", "");
   const { data: claims, error: claimsError } = await supabase.auth.getClaims(token);
-  
+
   if (claimsError || !claims?.claims) {
     console.error("JWT verification failed:", claimsError);
     return {
@@ -40,7 +40,7 @@ async function authenticateAdmin(req: Request): Promise<{ error?: Response; user
   }
 
   const userId = claims.claims.sub as string;
-  
+
   // Check admin role using service role key
   const supabaseService = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const { data: hasRole, error: roleError } = await supabaseService.rpc("has_role", {
@@ -124,8 +124,8 @@ serve(async (req) => {
       .eq("is_active", true);
 
     const sites = sitesConfig?.map(s => s.value) || [
-      "g1.globo.com", 
-      "folha.uol.com.br", 
+      "g1.globo.com",
+      "folha.uol.com.br",
       "estadao.com.br",
       "noticias.uol.com.br",
       "terra.com.br/noticias",
@@ -157,28 +157,28 @@ serve(async (req) => {
       "12h": "qdr:h12", // last 12 hours
       "24h": "qdr:d",  // last day
     };
-    
+
     const timeFilterValue = timeFilterConfig?.value || "24h";
     const tbsValue = timeFilterMap[timeFilterValue] || "qdr:d";
-    
+
     console.log(`⏰ Time filter: ${timeFilterValue} (tbs: ${tbsValue})`);
 
     // Pick a random topic to search
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-    
+
     // Skip URL-like topics (these are malformed entries)
     const isValidTopic = !randomTopic.startsWith('http');
     const effectiveTopic = isValidTopic ? randomTopic : "notícias Brasil hoje";
-    
+
     // Simple, effective search query - just use site restrictions without complex paths
     const siteRestrictions = sites
       .filter(s => !s.startsWith('http')) // Skip malformed site entries
       .map(s => `site:${s.replace(/^https?:\/\//, '')}`)
       .join(" OR ");
-    
+
     // Build a simpler search query that actually returns results
     // Use general news terms instead of random qualifiers that may not match
-    const searchQuery = siteRestrictions 
+    const searchQuery = siteRestrictions
       ? `(${siteRestrictions}) "${effectiveTopic}" notícia`
       : `${effectiveTopic} notícia site:g1.globo.com OR site:uol.com.br OR site:folha.uol.com.br`;
 
@@ -229,46 +229,46 @@ serve(async (req) => {
       const url = item.url || "";
       const title = item.title || item.metadata?.title || "";
       const markdown = item.markdown || "";
-      
+
       // Skip if no URL
       if (!url) return false;
-      
+
       const urlPath = url.replace(/https?:\/\/[^\/]+/, "");
-      
+
       // Simple patterns that indicate index/category pages
       const isIndexPage = /^\/?$/.test(urlPath) || // Root URL
-                          /^\/[a-z-]+\/?$/i.test(urlPath) || // Single segment
-                          /\/(busca|search|tag|categoria|topico|autor)\//i.test(urlPath);
-      
+        /^\/[a-z-]+\/?$/i.test(urlPath) || // Single segment
+        /\/(busca|search|tag|categoria|topico|autor)\//i.test(urlPath);
+
       // Check if URL looks like an article (has date pattern, ID, or news-like path)
       const hasArticlePattern = /\/\d{4}\/|\/\d{2}\/|\/noticia|\.html?$|\/\d+[-_]|[-_]\d+\./.test(urlPath);
-      
+
       // Content should have reasonable text (at least 300 chars)
       const hasContent = markdown.length > 300;
-      
+
       // Title should be descriptive
       const hasTitle = title.length > 15;
-      
+
       // Accept if it has article pattern OR has content and isn't clearly an index
       if (isIndexPage && !hasArticlePattern) {
         console.log(`⏭️ Skipping index page: ${url.slice(0, 60)}...`);
         return false;
       }
-      
+
       if (!hasContent) {
         console.log(`⏭️ Skipping thin content (${markdown.length} chars): ${title.slice(0, 40)}...`);
         return false;
       }
-      
+
       if (!hasTitle) {
         console.log(`⏭️ Skipping no title: ${url.slice(0, 60)}...`);
         return false;
       }
-      
+
       console.log(`✓ Valid article: ${title.slice(0, 50)}...`);
       return true;
     });
-    
+
     console.log(`📰 After filtering: ${results.length} valid articles`);
 
     if (results.length === 0) {
@@ -292,7 +292,7 @@ serve(async (req) => {
       .limit(50);
 
     const existingTitles = (existingPosts || []).map((p: any) => p.title.toLowerCase().trim());
-    
+
     // Create list of recent titles for AI context (shorter list)
     const recentTitlesList = (existingPosts || [])
       .slice(0, 15)
@@ -316,14 +316,14 @@ serve(async (req) => {
     const isSimilarToExisting = (newTitle: string, threshold = 0.4): boolean => {
       const newKeywords = extractKeywords(newTitle);
       if (newKeywords.size < 3) return false; // Too few keywords to compare
-      
+
       for (const existingSet of existingKeywordSets) {
         if (existingSet.size < 3) continue;
-        
+
         const intersection = new Set([...newKeywords].filter(x => existingSet.has(x)));
         const union = new Set([...newKeywords, ...existingSet]);
         const similarity = intersection.size / union.size;
-        
+
         if (similarity >= threshold) {
           return true;
         }
@@ -342,15 +342,15 @@ serve(async (req) => {
         const description = item.description || item.metadata?.description || "";
         const markdown = item.markdown || "";
         const url = item.url;
-        
+
         // Extract original image from metadata
         const ogImage = item.metadata?.ogImage || item.metadata?.["og:image"];
         const twitterImage = item.metadata?.["twitter:image"];
-        
+
         // Try to extract image from markdown content
         const markdownImageMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s\)]+\.(jpg|jpeg|png|webp|gif)[^\s\)]*)\)/i);
         const markdownImage = markdownImageMatch?.[1];
-        
+
         // Priority: og:image > twitter:image > markdown image > fallback
         const originalImage = ogImage || twitterImage || markdownImage || null;
 
@@ -411,6 +411,7 @@ serve(async (req) => {
             author: article.author,
             is_featured: false,
             is_breaking: article.isUrgent,
+            sources: [{ name: getSourceName(url), url: url }]
           })
           .select()
           .single();
@@ -481,7 +482,7 @@ async function updateLog(
   data: Record<string, any>
 ) {
   if (!logId) return;
-  
+
   try {
     await supabase
       .from("news_collection_logs")
@@ -519,7 +520,7 @@ REGRAS:
 • Parágrafos curtos
 • Sem opinião ou sensacionalismo
 • NÃO INCLUA NENHUM LINK ou URL no texto
-• NÃO mencione fontes externas ou sites de onde a notícia foi obtida
+• NÃO mencione fontes externas ou sites de onde a notícia foi obtida no corpo do texto
 • NÃO adicione seções de "Informações relevantes", "Saiba mais", "Leia também" ou similares
 • Apenas o conteúdo da notícia, sem referências externas
 
@@ -539,7 +540,7 @@ FORMATO DE RESPOSTA:
 [Subtítulo explicativo]
 
 ---AUTOR---
-[Nome fictício de repórter]
+[Nome do autor original identificado no texto ou metadados. Se não houver, use "Redação JG News"]
 
 ---CONTEUDO---
 [Conteúdo em HTML com <p>, <h3>, <ul><li> - SEM LINKS]`;
@@ -615,9 +616,9 @@ function parseGeneratedContent(content: string): {
 
   const title = titleMatch?.[1]?.trim() || "Notícia sem título";
   const excerpt = subtitleMatch?.[1]?.trim() || "";
-  const author = authorMatch?.[1]?.trim() || "Redação IA";
+  const author = authorMatch?.[1]?.trim() || "Redação JG News";
   let htmlContent = contentMatch?.[1]?.trim() || content;
-  
+
   // Remove any remaining links from the content
   htmlContent = htmlContent
     .replace(/<a[^>]*>([^<]*)<\/a>/gi, '$1') // Remove <a> tags keeping text
@@ -640,6 +641,28 @@ function parseGeneratedContent(content: string): {
     slug: `${slug}-${Date.now()}`,
     isUrgent,
   };
+}
+
+function getSourceName(url: string): string {
+  try {
+    const hostname = new URL(url).hostname.replace('www.', '');
+    if (hostname.includes('globo.com')) return 'G1';
+    if (hostname.includes('uol.com.br')) return 'UOL';
+    if (hostname.includes('folha')) return 'Folha de S.Paulo';
+    if (hostname.includes('estadao')) return 'Estadão';
+    if (hostname.includes('cnnbrasil')) return 'CNN Brasil';
+    if (hostname.includes('r7.com')) return 'R7';
+    if (hostname.includes('terra.com.br')) return 'Terra';
+    if (hostname.includes('bbc.com')) return 'BBC News Brasil';
+    if (hostname.includes('cnn.com')) return 'CNN';
+    if (hostname.includes('metropoles.com')) return 'Metrópoles';
+    if (hostname.includes('poder360.com.br')) return 'Poder360';
+    if (hostname.includes('infomoney.com.br')) return 'InfoMoney';
+    if (hostname.includes('valor.globo')) return 'Valor Econômico';
+    return hostname.charAt(0).toUpperCase() + hostname.slice(1);
+  } catch {
+    return 'Fonte Externa';
+  }
 }
 
 function detectCategory(content: string, title: string): string {
