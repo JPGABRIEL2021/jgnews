@@ -108,9 +108,12 @@ const Index = () => {
           </div>
         ) : null}
 
-        {/* Ad Banner - Below Hero */}
-        <div className="container py-3">
-          <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
+        {/* Ad Banner - Below Hero - Optimized placement */}
+        <div className="container py-4">
+          <AdBanner 
+            format="horizontal" 
+            className="min-h-[100px] md:min-h-[120px] bg-gradient-to-r from-muted/40 to-muted/20 rounded-xl border border-border/50 shadow-sm" 
+          />
         </div>
 
         {/* Most Read Section */}
@@ -140,9 +143,12 @@ const Index = () => {
           bgGradient="bg-gradient-to-b from-amber-50/30 to-transparent dark:from-amber-950/10"
         />
 
-        {/* Ad Banner */}
-        <div className="container py-3">
-          <AdBanner format="horizontal" className="min-h-[90px] bg-muted/30 rounded-lg" />
+        {/* Ad Banner - Mid content - Rectangle format for better visibility */}
+        <div className="container py-6">
+          <AdBanner 
+            format="rectangle" 
+            className="min-h-[280px] md:min-h-[300px] bg-gradient-to-br from-muted/30 via-muted/20 to-transparent rounded-xl border border-border/50 shadow-sm" 
+          />
         </div>
 
         <ThematicSection 
