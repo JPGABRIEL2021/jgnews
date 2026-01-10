@@ -5,12 +5,12 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CategoryBadge from "@/components/CategoryBadge";
 import ShareButtons from "@/components/ShareButtons";
-import NewsCard from "@/components/NewsCard";
+import RelatedArticles from "@/components/RelatedArticles";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SEO from "@/components/SEO";
 import SensitiveImage from "@/components/SensitiveImage";
 import AdBanner from "@/components/AdBanner";
-import { usePost, usePosts, usePostsRealtime } from "@/hooks/usePosts";
+import { usePost, usePostsRealtime } from "@/hooks/usePosts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PostSource } from "@/lib/posts";
@@ -22,9 +22,6 @@ const ArticlePage = () => {
   usePostsRealtime();
 
   const { data: post, isLoading, error } = usePost(slug || "");
-  const { data: allPosts = [] } = usePosts();
-
-  const relatedPosts = allPosts.filter(p => p.slug !== slug).slice(0, 4);
 
   if (isLoading) {
     return (
@@ -104,7 +101,7 @@ const ArticlePage = () => {
           <header className="mb-8">
             <CategoryBadge category={post.category} size="lg" />
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-news-primary mt-4 mb-4 leading-tight">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-news-primary mt-4 mb-4 leading-tight font-serif">
               {post.title}
             </h1>
 
@@ -210,21 +207,8 @@ const ArticlePage = () => {
           </div>
         </article>
 
-        {/* Related Articles */}
-        {relatedPosts.length > 0 && (
-          <section className="bg-news-subtle py-8">
-            <div className="container max-w-4xl">
-              <h4 className="text-xl font-bold text-news-primary mb-6 pb-3 border-b-2 border-primary">
-                Veja também
-              </h4>
-              <div className="space-y-0">
-                {relatedPosts.map((relatedPost) => (
-                  <NewsCard key={relatedPost.id} post={relatedPost} />
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+        {/* Related Articles - Improved component */}
+        {post && <RelatedArticles currentPost={post} />}
       </main>
 
       <Footer />

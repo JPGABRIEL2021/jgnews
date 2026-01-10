@@ -18,7 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Source Sans 3', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['Merriweather', 'Georgia', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -89,6 +90,10 @@ export default {
           "0%": { transform: "translateX(0%)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        "skeleton-wave": {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -97,6 +102,7 @@ export default {
         "slide-in-right": "slide-in-right 0.3s ease-out",
         "pulse-slow": "pulse-slow 2s ease-in-out infinite",
         "marquee": "marquee 15s linear infinite",
+        "skeleton-wave": "skeleton-wave 2s ease-in-out infinite",
       },
     },
   },
