@@ -28,8 +28,8 @@ const TechNewsSection = () => {
               <p className="text-sm text-muted-foreground">Inovação e mundo digital</p>
             </div>
           </div>
-          <Link 
-            to="/categoria/Tecnologia" 
+          <Link
+            to="/categoria/Tecnologia"
             className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
           >
             Ver todas
@@ -49,8 +49,8 @@ const TechNewsSection = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {displayPosts.map((post) => (
-              <TechNewsCard key={post.id} post={post} />
+            {displayPosts.map((post, index) => (
+              <TechNewsCard key={post.id} post={post} index={index} />
             ))}
           </div>
         )}
@@ -59,11 +59,12 @@ const TechNewsSection = () => {
   );
 };
 
-const TechNewsCard = ({ post }: { post: Post }) => {
+const TechNewsCard = ({ post, index }: { post: Post; index: number }) => {
   return (
-    <Link 
-      to={`/post/${post.slug}`} 
-      className="group block bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-border"
+    <Link
+      to={`/post/${post.slug}`}
+      className="group block bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-border animate-fade-in"
+      style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
         <OptimizedImage

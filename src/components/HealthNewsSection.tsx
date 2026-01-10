@@ -30,8 +30,8 @@ const HealthNewsSection = () => {
               <p className="text-sm text-muted-foreground">Notícias e informações sobre saúde</p>
             </div>
           </div>
-          <Link 
-            to="/category/Saúde" 
+          <Link
+            to="/category/Saúde"
             className="flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors"
           >
             Ver todas
@@ -52,8 +52,8 @@ const HealthNewsSection = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {displayPosts.map((post) => (
-              <HealthNewsCard key={post.id} post={post} />
+            {displayPosts.map((post, index) => (
+              <HealthNewsCard key={post.id} post={post} index={index} />
             ))}
           </div>
         )}
@@ -62,11 +62,12 @@ const HealthNewsSection = () => {
   );
 };
 
-const HealthNewsCard = ({ post }: { post: Post }) => {
+const HealthNewsCard = ({ post, index }: { post: Post; index: number }) => {
   return (
-    <Link 
-      to={`/post/${post.slug}`} 
-      className="group block bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-border"
+    <Link
+      to={`/post/${post.slug}`}
+      className="group block bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-border animate-fade-in"
+      style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
         <OptimizedImage

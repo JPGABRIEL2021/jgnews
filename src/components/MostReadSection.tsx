@@ -44,7 +44,8 @@ const MostReadSection = () => {
               <Link
                 key={post.id}
                 to={`/post/${post.slug}`}
-                className="group flex gap-3 items-start p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                className="group flex gap-3 items-start p-3 rounded-lg hover:bg-muted/50 transition-colors animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
               >
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-sm shrink-0">
                   {index + 1}

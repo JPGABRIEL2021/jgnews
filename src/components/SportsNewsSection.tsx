@@ -28,8 +28,8 @@ const SportsNewsSection = () => {
               <p className="text-sm text-muted-foreground">Futebol, olimpíadas e mais</p>
             </div>
           </div>
-          <Link 
-            to="/categoria/Esportes" 
+          <Link
+            to="/categoria/Esportes"
             className="flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 transition-colors"
           >
             Ver todas
@@ -49,8 +49,8 @@ const SportsNewsSection = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {displayPosts.map((post) => (
-              <SportsNewsCard key={post.id} post={post} />
+            {displayPosts.map((post, index) => (
+              <SportsNewsCard key={post.id} post={post} index={index} />
             ))}
           </div>
         )}
@@ -59,11 +59,12 @@ const SportsNewsSection = () => {
   );
 };
 
-const SportsNewsCard = ({ post }: { post: Post }) => {
+const SportsNewsCard = ({ post, index }: { post: Post; index: number }) => {
   return (
-    <Link 
-      to={`/post/${post.slug}`} 
-      className="group block bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-border"
+    <Link
+      to={`/post/${post.slug}`}
+      className="group block bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-border animate-fade-in"
+      style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
         <OptimizedImage
