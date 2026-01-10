@@ -236,7 +236,7 @@ export function useTriggerCollection() {
   return useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("auto-collect-news", {
-        queryParams: { manual: "true" }
+        body: { manual: true }
       });
       if (error) throw error;
       return data;
