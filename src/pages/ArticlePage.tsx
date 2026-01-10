@@ -140,18 +140,22 @@ const ArticlePage = () => {
             </figcaption>
           </figure>
 
-          {/* Share Buttons */}
-          <div className="mb-1.5">
+          {/* Share Buttons - Prominent */}
+          <div className="mb-6">
             <ShareButtons
               title={post.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
               slug={post.slug}
+              variant="prominent"
             />
           </div>
 
-          {/* Ad Banner - Before Content */}
-          <div className="mb-2">
-            <AdBanner format="horizontal" className="min-h-[50px] md:min-h-[90px] bg-muted/30 rounded-lg" />
+          {/* Ad Banner - Before Content - Optimized */}
+          <div className="mb-8 -mx-4 md:mx-0">
+            <AdBanner 
+              format="horizontal" 
+              className="min-h-[100px] md:min-h-[120px] bg-gradient-to-r from-muted/40 to-muted/20 rounded-none md:rounded-xl border-y md:border border-border/50" 
+            />
           </div>
 
           {/* Article Content - Sanitized to prevent XSS */}
@@ -192,19 +196,31 @@ const ArticlePage = () => {
             </div>
           )}
 
-          {/* Ad Banner - After Content */}
-          <div className="my-6">
-            <AdBanner format="horizontal" className="min-h-[50px] md:min-h-[90px] bg-muted/30 rounded-lg" />
+          {/* Ad Banner - After Content - Optimized */}
+          <div className="my-8 -mx-4 md:mx-0">
+            <AdBanner 
+              format="rectangle" 
+              className="min-h-[280px] md:min-h-[300px] bg-gradient-to-br from-muted/30 via-muted/20 to-transparent rounded-none md:rounded-xl border-y md:border border-border/50" 
+            />
           </div>
 
-          {/* Bottom Share */}
-          <div className="mt-8 pt-6 border-t border-news">
+          {/* Bottom Share - Prominent */}
+          <div className="mt-8 pt-6 border-t border-border">
             <ShareButtons
               title={post.title}
               url={typeof window !== "undefined" ? window.location.href : ""}
               slug={post.slug}
+              variant="prominent"
             />
           </div>
+
+          {/* Floating Share Button - Mobile Only */}
+          <ShareButtons
+            title={post.title}
+            url={typeof window !== "undefined" ? window.location.href : ""}
+            slug={post.slug}
+            variant="floating"
+          />
         </article>
 
         {/* Related Articles - Improved component */}

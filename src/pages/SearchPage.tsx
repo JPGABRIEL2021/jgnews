@@ -119,44 +119,55 @@ const SearchPage = () => {
               />
             </div>
 
-            {/* Toggle Filters Button */}
+            {/* Always Visible Filters */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              {/* Category Pills */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedCategory === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory("all")}
+                  className="rounded-full"
+                >
+                  Todas
+                </Button>
+                {categories.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={selectedCategory === cat.toLowerCase() ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat.toLowerCase())}
+                    className="rounded-full"
+                  >
+                    {cat}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Toggle Advanced Filters Button */}
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => setShowFilters(!showFilters)}
-              className="mt-4"
+              className="mt-4 text-muted-foreground hover:text-foreground"
+              size="sm"
             >
-              <Filter size={18} className="mr-2" />
-              {showFilters ? "Ocultar filtros" : "Mostrar filtros"}
+              <Filter size={16} className="mr-2" />
+              {showFilters ? "Ocultar filtros avançados" : "Filtros avançados"}
             </Button>
 
-            {/* Filters */}
+            {/* Advanced Filters */}
             {showFilters && (
-              <div className="mt-6 p-6 bg-background rounded-lg border border-news animate-fade-in">
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Category Filter */}
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Categoria</Label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger id="category">
-                        <SelectValue placeholder="Todas as categorias" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas as categorias</SelectItem>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat.toLowerCase()}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
+              <div className="mt-4 p-5 bg-card rounded-xl border border-border shadow-sm animate-fade-in">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {/* Date Filter */}
                   <div className="space-y-2">
-                    <Label htmlFor="date">Período</Label>
+                    <Label htmlFor="date" className="text-sm font-medium flex items-center gap-2">
+                      <Calendar size={14} className="text-primary" />
+                      Período
+                    </Label>
                     <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as DateFilter)}>
-                      <SelectTrigger id="date">
-                        <Calendar size={16} className="mr-2" />
+                      <SelectTrigger id="date" className="bg-background">
                         <SelectValue placeholder="Qualquer data" />
                       </SelectTrigger>
                       <SelectContent>
@@ -169,15 +180,32 @@ const SearchPage = () => {
                     </Select>
                   </div>
 
+                  {/* Sort Order - New */}
+                  <div className="space-y-2">
+                    <Label htmlFor="sort" className="text-sm font-medium">
+                      Ordenar por
+                    </Label>
+                    <Select defaultValue="newest">
+                      <SelectTrigger id="sort" className="bg-background">
+                        <SelectValue placeholder="Mais recentes" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Mais recentes</SelectItem>
+                        <SelectItem value="oldest">Mais antigas</SelectItem>
+                        <SelectItem value="relevant">Mais relevantes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Clear Filters */}
                   <div className="flex items-end">
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       onClick={clearFilters}
                       disabled={!hasActiveFilters}
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto gap-2"
                     >
-                      <X size={16} className="mr-2" />
+                      <X size={16} />
                       Limpar filtros
                     </Button>
                   </div>
