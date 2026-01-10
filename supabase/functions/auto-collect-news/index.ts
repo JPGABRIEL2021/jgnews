@@ -75,6 +75,33 @@ serve(async (req) => {
   console.log(`🔐 Admin authenticated: ${auth.userId}`);
 
   const startTime = Date.now();
+
+  // Time window check (Brasília Time: UTC-3)
+  const now = new Date();
+  const brTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+  const brHours = brTime.getUTCHours();
+  const brMinutes = brTime.getUTCMinutes();
+  const currentTimeInMinutes = brHours * 60 + brMinutes;
+
+  const startMinutes = 6 * 60 + 30; // 06:30
+  const endMinutes = 23 * 60 + 59;   // 23:59
+
+  // Allow manual execution to skip this check (e.g. if a query param manual=true is passed)
+  const url = new URL(req.url);
+  const isManual = url.searchParams.get("manual") === "true";
+
+  if (!isManual && (currentTimeInMinutes < startMinutes || currentTimeInMinutes > endMinutes)) {
+    console.log(`💤 Outside collection window (06:30 - 23:59 Brasília). Current time: ${brHours}:${brMinutes < 10 ? '0' + brMinutes : brMinutes}. Skipping.`);
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Fora do horário de coleta (06:30 - 23:59 Brasília). Operação ignorada.",
+        skipped: true
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   console.log("🚀 Starting automatic news collection...");
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

@@ -109,9 +109,23 @@ export default function NewsCollectionMonitor() {
       if (triggerCollection.isPending) return;
       if (latestLog && latestLog.status === 'running') return;
 
-      const now = Date.now();
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const currentTimeInMinutes = hours * 60 + minutes;
+
+      const startMinutes = 6 * 60 + 30; // 06:30
+      const endMinutes = 23 * 60 + 59;   // 23:59
+
+      // Check time window (06:30 to 23:59)
+      if (currentTimeInMinutes < startMinutes || currentTimeInMinutes > endMinutes) {
+        console.log(`💤 Watchdog: Outside collection window (06:30 - 23:59). Current time: ${hours}:${minutes < 10 ? '0' + minutes : minutes}`);
+        return;
+      }
+
+      const nowMs = now.getTime();
       const lastRunTime = latestLog ? new Date(latestLog.started_at).getTime() : 0;
-      const timeSinceLast = now - lastRunTime;
+      const timeSinceLast = nowMs - lastRunTime;
 
       // If time passed + 2 minutes buffer (to avoid race conditions), trigger it
       // Note: If lastRunTime is 0 (never ran), this is always true
@@ -537,6 +551,9 @@ export default function NewsCollectionMonitor() {
                 </h4>
                 <p className="text-sm text-muted-foreground mb-3">
                   Define com que frequência a coleta automática será executada.
+                  <span className="block font-semibold text-primary mt-1">
+                    Horário de funcionamento: 06:30 às 23:59 (Todos os dias)
+                  </span>
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {SCHEDULE_INTERVAL_OPTIONS.map((option) => (
